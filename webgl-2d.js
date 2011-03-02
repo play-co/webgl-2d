@@ -50,13 +50,15 @@
 
     // Override getContext function with "webgl-2d" enabled version
     canvas.getContext = (function(webgl2d) { 
-      return function(contextString) {
-        if (contextString === "2d") {
-          return (webgl2d.cvs.$getContext(contextString));
-        } else if (contextString === "webgl-2d") {
-          webgl2d.ctx = webgl2d.cvs.$getContext("experimental-webgl");
-          webgl2d.addCanvas2DAPI();
-          return webgl2d.ctx;
+      return function(context) {
+        switch(context) {
+          case "2d":
+            return webgl2d.cvs.$getContext(context);
+            break;
+
+          case "webgl-2d":
+            return webgl2d.initGL();
+            break;
         }
       };
     }(this));
@@ -67,6 +69,56 @@
   // Enables WebGL2D on your canvas
   WebGL2D.enable = function(canvas) {
     return new WebGL2D(canvas);
+  };
+
+  WebGL2D.prototype.initGL = function initGL() {
+    this.ctx = this.cvs.$getContext("experimental-webgl");
+
+    this.initShaders();
+    this.addCanvas2DAPI();
+
+    return this.ctx;
+  };
+
+  var fsSource =
+  '#ifdef GL_ES                                \n\
+    precision highp float;                     \n\
+    #endif                                     \n\
+                                               \n\
+    void main(void) {                          \n\
+      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); \n\
+    }                                          \n\
+  ';
+
+  var vsSource =
+  'attribute vec3 aVertexPosition;             \n\
+                                               \n\
+    void main(void) {                          \n\
+      gl_Position = vec4(aVertexPosition, 1.0);\n\
+    }                                          \n\
+  ';
+
+  // Initialize fragment and vertex shaders
+  WebGL2D.prototype.initShaders = function initShaders() {
+    var gl = this.ctx;
+
+    this.fs = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(this.fs, fsSource);
+    gl.compileShader(this.fs);
+
+    this.vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(this.vs, vsSource);
+    gl.compileShader(this.vs);
+
+    this.shaderProgram = gl.createProgram();
+    gl.attachShader(this.shaderProgram, this.vs);
+    gl.attachShader(this.shaderProgram, this.fs);
+    gl.linkProgram(this.shaderProgram);
+
+    gl.useProgram(this.shaderProgram);
+
+    this.shaderProgram.vertexPositionAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
+    gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
   };
 
   // Maintains an array of all WebGL2D instances
