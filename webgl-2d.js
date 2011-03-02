@@ -43,22 +43,31 @@
 (function(undefined) {
 
   var WebGL2D = this.WebGL2D = function WebGL2D(canvas) {
-    this.cvs = canvas;
+    this.canvas         = canvas;
+    this.gl             = undefined;
+    this.fs             = undefined;
+    this.vs             = undefined;
+    this.shaderProgram  = undefined;
+    this.fillStyle      = [1, 1, 1, 1];
+    this.strokeStyle    = [0, 0, 0, 1];
 
     // Store getContext function for later use
     canvas.$getContext = canvas.getContext;
 
     // Override getContext function with "webgl-2d" enabled version
-    canvas.getContext = (function(webgl2d) { 
+    canvas.getContext = (function(gl2d) { 
       return function(context) {
         switch(context) {
           case "2d":
-            return webgl2d.cvs.$getContext(context);
-            break;
+            return    gl2d.canvas.$getContext(context);
 
           case "webgl-2d":
-            return webgl2d.initGL();
-            break;
+            gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
+
+            gl2d.initShaders();
+            gl2d.addCanvas2DAPI();
+
+            return gl2d.gl;
         }
       };
     }(this));
@@ -71,15 +80,7 @@
     return new WebGL2D(canvas);
   };
 
-  WebGL2D.prototype.initGL = function initGL() {
-    this.ctx = this.cvs.$getContext("experimental-webgl");
-
-    this.initShaders();
-    this.addCanvas2DAPI();
-
-    return this.ctx;
-  };
-
+  // Fragment shader source
   var fsSource =
   '#ifdef GL_ES                                \n\
     precision highp float;                     \n\
@@ -90,6 +91,7 @@
     }                                          \n\
   ';
 
+  // Vertex shader source
   var vsSource =
   'attribute vec3 aVertexPosition;             \n\
                                                \n\
@@ -100,7 +102,7 @@
 
   // Initialize fragment and vertex shaders
   WebGL2D.prototype.initShaders = function initShaders() {
-    var gl = this.ctx;
+    var gl = this.gl;
 
     this.fs = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(this.fs, fsSource);
@@ -128,10 +130,12 @@
     WebGL2D.instances.push(this);    
   };
 
+  // Extends gl context with Canvas2D API
   WebGL2D.prototype.addCanvas2DAPI = function addCanvas2DAPI() {
-    var webgl = WebGLRenderingContext.prototype,
-          ctx = this.ctx;
+    var gl2d = this,
+        gl   = this.gl;
 
+    // Converts rgb(a) color string to gl color array
     function colorStringToArray(colorString) {
       var glColor = colorString.replace(/[^\d.,]/g, "").split(",");
       glColor[0] /= 255; glColor[1] /= 255; glColor[2] /= 255;
@@ -139,20 +143,23 @@
       return glColor;
     }
 
-    // Define setters for fillStyle and strokeStyle
-    Object.defineProperty(ctx, "fillStyle", {
+    // Setter for fillStyle
+    Object.defineProperty(gl, "fillStyle", {
       set: function(value) {
-        this.clearColor.apply(this, colorStringToArray(value));
+        gl2d.fillStyle = colorStringToArray(value); 
+        this.clearColor.apply(this, gl2d.fillStyle);
       }
     });
 
-    Object.defineProperty(ctx, "strokeStyle", {
+    // Setter for strokeStyle
+    Object.defineProperty(gl, "strokeStyle", {
       set: function(value) {
+        gl2d.strokeStyle = colorStringToArray(value); 
       }
     });
 
-    ctx.fillRect = function fillRect(x, y, width, height) {
-      this.clear(16640);
+    gl.fillRect = function fillRect(x, y, width, height) {
+      this.clear(this.COLOR_BUFFER_BIT);
     };
   };
 
