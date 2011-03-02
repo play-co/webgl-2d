@@ -67,6 +67,10 @@
             gl2d.initShaders();
             gl2d.addCanvas2DAPI();
 
+            // Default white background
+            gl2d.gl.clearColor(1, 1, 1, 1);
+            gl2d.gl.clear(gl2d.gl.COLOR_BUFFER_BIT);
+
             return gl2d.gl;
         }
       };
@@ -147,7 +151,6 @@
     Object.defineProperty(gl, "fillStyle", {
       set: function(value) {
         gl2d.fillStyle = colorStringToArray(value); 
-        this.clearColor.apply(this, gl2d.fillStyle);
       }
     });
 
@@ -159,6 +162,8 @@
     });
 
     gl.fillRect = function fillRect(x, y, width, height) {
+      // for now just set the background color to the fillStyle
+      this.clearColor.apply(this, gl2d.fillStyle);
       this.clear(this.COLOR_BUFFER_BIT);
     };
   };
