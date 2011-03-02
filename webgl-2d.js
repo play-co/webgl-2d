@@ -29,36 +29,79 @@
  *
  */
 
+/**
+ * Usage:
+ * 
+ *    var cvs = document.getElementById("myCanvas");
+ * 
+ *    WebGL2D.enable(cvs); // adds "webgl-2d" to cvs
+ *
+ *    cvs.getContext("webgl-2d");
+ *
+ */
+
 (function(undefined) {
 
-  var ctx;
-
   var WebGL2D = this.WebGL2D = function WebGL2D(canvas) {
-    ctx = canvas.getContext("experimental-webgl"); 
+    this.cvs = canvas;
 
-    return ctx;
+    // Store getContext function for later use
+    canvas.$getContext = canvas.getContext;
+
+    // Override getContext function with "webgl-2d" enabled version
+    canvas.getContext = (function(webgl2d) { 
+      return function(contextString) {
+        if (contextString === "2d") {
+          return (webgl2d.cvs.$getContext(contextString));
+        } else if (contextString === "webgl-2d") {
+          webgl2d.ctx = webgl2d.cvs.$getContext("experimental-webgl");
+          webgl2d.addCanvas2DAPI();
+          return webgl2d.ctx;
+        }
+      };
+    }(this));
+
+    this.postInit();
   };
 
-  var webgl = WebGLRenderingContext.prototype;
+  // Enables WebGL2D on your canvas
+  WebGL2D.enable = function(canvas) {
+    return new WebGL2D(canvas);
+  };
 
-  function colorStringToArray(colorString) {
-    return colorString.replace(/[^\d.,]/g, "").split(",");
-  }
+  // Maintains an array of all WebGL2D instances
+  WebGL2D.instances = [];
 
-  Object.defineProperty(webgl, "fillStyle", {
-    set: function(value) {
-      ctx.clearColor.apply(this, colorStringToArray(value));
+  WebGL2D.prototype.postInit = function() {
+    WebGL2D.instances.push(this);    
+  };
+
+  WebGL2D.prototype.addCanvas2DAPI = function addCanvas2DAPI() {
+    var webgl = WebGLRenderingContext.prototype,
+          ctx = this.ctx;
+
+    function colorStringToArray(colorString) {
+      var glColor = colorString.replace(/[^\d.,]/g, "").split(",");
+      glColor[0] /= 255; glColor[1] /= 255; glColor[2] /= 255;
+
+      return glColor;
     }
-  });
 
-  Object.defineProperty(webgl, "strokeStyle", {
-    set: function(value) {
-      alert(value);
-    }
-  });
+    // Define setters for fillStyle and strokeStyle
+    Object.defineProperty(ctx, "fillStyle", {
+      set: function(value) {
+        this.clearColor.apply(this, colorStringToArray(value));
+      }
+    });
 
-  webgl.fillRect = function fillRect(x, y, width, height) {
-    ctx.clear(16640);
+    Object.defineProperty(ctx, "strokeStyle", {
+      set: function(value) {
+      }
+    });
+
+    ctx.fillRect = function fillRect(x, y, width, height) {
+      this.clear(16640);
+    };
   };
 
 }());

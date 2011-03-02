@@ -12,10 +12,15 @@
 
       function init() {
         cvs = document.getElementById("canvas1");
-        //ctx = cvs.getContext("2d");
-        ctx = new WebGL2D(cvs);
 
-        ctx.fillStyle = "rgba(1.0, 0, 0, 1.0)";
+        WebGL2D.enable(cvs); // adds new context "webgl-2d" to cvs
+
+        // Easily switch between regular canvas 2d context and webgl-2d
+
+        //ctx = cvs.getContext("2d");
+        ctx = cvs.getContext("webgl-2d");
+
+        ctx.fillStyle = "rgba(255, 128, 64, 1.0)";
         ctx.fillRect(0, 0, cvs.width, cvs.height);
       }
     </script>
