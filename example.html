@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebGL-2D Example</title>
+  
+    <script src="webgl-2d.js" type="text/javascript"></script>
+  
+    <script type="text/javascript">
+      document.addEventListener("DOMContentLoaded", init, false);
+
+      var cvs, ctx;
+
+      function init() {
+        cvs = document.getElementById("canvas1");
+        //ctx = cvs.getContext("2d");
+        ctx = new WebGL2D(cvs);
+
+        ctx.fillStyle = "rgba(1.0, 0, 0, 1.0)";
+        ctx.fillRect(0, 0, cvs.width, cvs.height);
+      }
+    </script>
+  
+  </head>
+  
+  <body>
+    <canvas id="canvas1">
+  </body>
+</html>
