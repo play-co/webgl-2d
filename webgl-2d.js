@@ -48,8 +48,8 @@
     this.fs             = undefined;
     this.vs             = undefined;
     this.shaderProgram  = undefined;
-    this.fillStyle      = [1, 1, 1, 1];
-    this.strokeStyle    = [0, 0, 0, 1];
+    this.fillStyle      = [0, 0, 0, 1]; // default black
+    this.strokeStyle    = [0, 0, 0, 1]; // default black
 
     // Store getContext function for later use
     canvas.$getContext = canvas.getContext;
@@ -90,17 +90,23 @@
     precision highp float;                     \n\
     #endif                                     \n\
                                                \n\
+    varying vec4 vColor;                       \n\
+                                               \n\
     void main(void) {                          \n\
-      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); \n\
+      gl_FragColor = vColor;                   \n\
     }                                          \n\
   ';
 
   // Vertex shader source
   var vsSource =
   'attribute vec3 aVertexPosition;             \n\
+    attribute vec4 aVertexColor;               \n\
+                                               \n\
+    varying vec4 vColor;                       \n\
                                                \n\
     void main(void) {                          \n\
       gl_Position = vec4(aVertexPosition, 1.0);\n\
+      vColor = aVertexColor;                   \n\
     }                                          \n\
   ';
 
@@ -125,6 +131,9 @@
 
     this.shaderProgram.vertexPositionAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
     gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
+
+    this.shaderProgram.vertexColorAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexColor");
+    gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
   };
 
   // Maintains an array of all WebGL2D instances
@@ -161,10 +170,42 @@
       }
     });
 
+    var rectVertexPositionBuffer;
+    var rectVertexColorBuffer;
+    var rectVerts = new Float32Array([0,0,0, 0,1,0, 1,1,0, 1,0,0]);
+
     gl.fillRect = function fillRect(x, y, width, height) {
       // for now just set the background color to the fillStyle
-      this.clearColor.apply(this, gl2d.fillStyle);
-      this.clear(this.COLOR_BUFFER_BIT);
+      //this.clearColor.apply(this, gl2d.fillStyle);
+      //this.clear(this.COLOR_BUFFER_BIT);
+      
+      rectVertexPositionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+
+      gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
+
+      rectVertexColorBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
+
+      
+      var colors = [];
+
+      for (var i = 0; i < 4; i++) {
+        colors.push(gl2d.fillStyle[0]);
+        colors.push(gl2d.fillStyle[1]);
+        colors.push(gl2d.fillStyle[2]);
+        colors.push(gl2d.fillStyle[3]);
+      }
+
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.vertexAttribPointer(gl2d.shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
+      gl.vertexAttribPointer(gl2d.shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
     };
   };
 
