@@ -14,11 +14,13 @@
     <script type="text/javascript">
       document.addEventListener("DOMContentLoaded", init, false);
 
-      var cvs2D, cvsGL, ctx2D, ctxGL;
+      var cvs2D, cvsGL, ctx2D, ctxGL, width, height;
 
       function init() {
         cvs2D = document.getElementById("canvas2D");
         cvsGL = document.getElementById("canvasGL");
+
+        width = cvs2D.width, height = cvs2D.height;
 
         WebGL2D.enable(cvsGL); // adds new context "webgl-2d" to cvs
 
@@ -26,17 +28,22 @@
         ctx2D = cvs2D.getContext("2d");
         ctxGL = cvsGL.getContext("webgl-2d");
 
-        ctx2D.fillStyle = "rgba(255, 128, 64, 1.0)";
-        ctx2D.translate(-0.2, 0.2);
-        ctx2D.rotate(30);
-        ctx2D.scale(0.5, 1);
-        ctx2D.fillRect(0.1, 0, cvs2D.width, cvs2D.height);
+        draw(ctx2D);
+        draw(ctxGL);
+      }
 
-        ctxGL.fillStyle = "rgba(255, 128, 64, 1.0)";
-        ctxGL.translate(-0.2, 0.2);
-        ctxGL.rotate(30);
-        ctxGL.scale(0.5, 1);
-        ctxGL.fillRect(0.1, 0, cvsGL.width, cvsGL.height);
+      function draw(ctx) {
+        ctx.translate(50, 50);
+        ctx.rotate(-Math.PI/4); // 45 degrees
+        ctx.scale(0.5, 1);
+
+        ctx.fillStyle = "rgba(255, 128, 64, 1.0)"; // orange
+        ctx.fillRect(0, 0, 100, 100);
+
+        ctx.translate(50, 50);
+
+        ctx.fillStyle = "rgba(0, 128, 64, 1.0)"; // green
+        ctx.fillRect(0, 0, 100, 100);
       }
     </script>
   

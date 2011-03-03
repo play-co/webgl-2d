@@ -415,7 +415,7 @@
     "varying vec4 vColor;",
 
     "void main(void) {",
-    "gl_Position = uOMatrix * vec4(aVertexPosition, 1.0);",
+    "gl_Position = uOMatrix * vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);",
     "vColor = aVertexColor;",
     "}"
   ].join("\n");
@@ -483,7 +483,8 @@
     });
 
     gl.translate = function translate(x, y) {
-      gl2d.transform.translate([x, -y, 0]);
+      //gl2d.transform.translate([x, -y, 0]);
+      gl2d.transform.translate([x/gl2d.canvas.width * 2.0 - 1.0, -y/gl2d.canvas.height * 2.0, 0]);
     }; //translate
 
     gl.rotate = function rotate(a) {
