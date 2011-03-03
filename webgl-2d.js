@@ -394,31 +394,31 @@
   };
 
   // Fragment shader source
-  var fsSource =
-  '#ifdef GL_ES                                \n\
-    precision highp float;                     \n\
-    #endif                                     \n\
-                                               \n\
-    varying vec4 vColor;                       \n\
-                                               \n\
-    void main(void) {                          \n\
-      gl_FragColor = vColor;                   \n\
-    }                                          \n\
-  ';
+  var fsSource = [
+    "#ifdef GL_ES",
+      "precision highp float;",
+    "#endif",
+
+    "varying vec4 vColor;",
+
+    "void main(void) {",
+      "gl_FragColor = vColor;",
+    "}"
+  ].join("\n");
 
   // Vertex shader source
-  var vsSource =
-  'attribute vec3 aVertexPosition;             \n\
-    attribute vec4 aVertexColor;               \n\
-    uniform mat4 uOMatrix;                     \n\
-                                               \n\
-    varying vec4 vColor;                       \n\
-                                               \n\
-    void main(void) {                          \n\
-      gl_Position = uOMatrix * vec4(aVertexPosition, 1.0);\n\
-      vColor = aVertexColor;                   \n\
-    }                                          \n\
-  ';
+  var vsSource = [
+    "attribute vec3 aVertexPosition;",
+    "attribute vec4 aVertexColor;",
+    "uniform mat4 uOMatrix;",
+
+    "varying vec4 vColor;",
+
+    "void main(void) {",
+    "gl_Position = uOMatrix * vec4(aVertexPosition, 1.0);",
+    "vColor = aVertexColor;",
+    "}"
+  ].join("\n");
 
   // Initialize fragment and vertex shaders
   WebGL2D.prototype.initShaders = function initShaders() {
@@ -482,10 +482,6 @@
       }
     });
 
-    var rectVertexPositionBuffer;
-    var rectVertexColorBuffer;
-    var rectVerts = new Float32Array([0,0,0, 0,1,0, 1,1,0, 1,0,0]);
-
     gl.translate = function translate(x, y) {
       gl2d.transform.translate([x, -y, 0]);
     }; //translate
@@ -498,11 +494,11 @@
       gl2d.transform.scale([x, y, 0]);
     }; //scale
 
+    var rectVertexPositionBuffer;
+    var rectVertexColorBuffer;
+    var rectVerts = new Float32Array([0,0,0, 0,1,0, 1,1,0, 1,0,0]);
+
     gl.fillRect = function fillRect(x, y, width, height) {
-      // for now just set the background color to the fillStyle
-      //this.clearColor.apply(this, gl2d.fillStyle);
-      //this.clear(this.COLOR_BUFFER_BIT);
-      
       rectVertexPositionBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
 
@@ -510,7 +506,6 @@
 
       rectVertexColorBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
-
       
       var colors = [];
 
