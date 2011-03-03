@@ -3,6 +3,7 @@
  * 
  *  Created by Corban Brook <corbanbrook@gmail.com> on 2011-03-02.
  *  Amended to by Bobby Richter <secretrobotron@gmail.com> on 2011-03-03
+ *  CubicVR.js by Charles Cliffe <cj@cubicproductions.com> on 2011-03-03
  *
  */
 
