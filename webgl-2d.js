@@ -48,6 +48,11 @@
   var M_PI = 3.1415926535897932384626433832795028841968;
   var M_TWO_PI = 2.0 * M_PI;
   var M_HALF_PI = M_PI / 2.0;
+  var cubicvr_identity = [1.0, 0.0, 0.0, 0.0,
+                          0.0, 1.0, 0.0, 0.0,
+                          0.0, 0.0, 1.0, 0.0,
+                          0.0, 0.0, 0.0, 1.0];
+
   var vec3 = {
     length: function(pt) {
       return Math.sqrt(pt[0] * pt[0] + pt[1] * pt[1] + pt[2] * pt[2]);
@@ -245,36 +250,28 @@
     if (!this.c_stack) {
       return this.m_stack[0];
     }
-
-    if (this.valid !== this.c_stack) {
-      if (this.valid > this.c_stack) {
-        while (this.valid > this.c_stack + 1) {
-          this.valid--;
-          this.m_cache.pop();
-        }
-      }
-      else {
-        for (var i = this.valid; i <= this.c_stack; i++) {
-          if (i === 0) {
-            this.m_cache[0] = this.m_stack[0];
-          }
-          else {
-            this.m_cache[i] = mat4.multiply(this.m_stack[i], this.m_cache[i - 1]);
-          }
-          this.valid++;
-        } //for
-      } //if
-      this.result = this.m_cache[this.valid - 1];
-      this.valid = 0;
-    } //if
+    
+    var m = cubicvr_identity;
+    
+    if (this.valid > this.c_stack-1) this.valid = this.c_stack-1;
+                
+    for (var i = this.valid; i < this.c_stack+1; i++) {
+      m = mat4.multiply(this.m_stack[i],m);
+      this.m_cache[i] = m;
+    }
+      
+    this.valid = this.c_stack-1;
+      
+    this.result = this.m_cache[this.c_stack];
+    
     return this.result;
-  }; //getResult
+  };
 
   Transform.prototype.pushMatrix = function(m) {
     this.c_stack++;
-    this.m_stack.push(m ? m : this.getIdentity());
+    this.m_stack[this.c_stack] = (m ? m : cubicvr_identity);
     return this;
-  }; //pushMatrix
+  };
 
   Transform.prototype.popMatrix = function() {
     if (this.c_stack === 0) {
@@ -304,11 +301,13 @@
     if (typeof(x) === 'object') {
       return this.translate(x[0], x[1], x[2]);
     }
+
     var m = this.getIdentity();
     m[12] = x;
     m[13] = y;
     m[14] = z;
-    this.m_stack[this.c_stack] = mat4.multiply(this.m_stack[this.c_stack], m);
+    this.m_stack[this.c_stack] = mat4.multiply(m, this.m_stack[this.c_stack]);
+
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
     }
@@ -323,7 +322,7 @@
     m[0] = x;
     m[5] = y;
     m[10] = z;
-    this.m_stack[this.c_stack] = mat4.multiply(this.m_stack[this.c_stack], m);
+    this.m_stack[this.c_stack] = mat4.multiply(m, this.m_stack[this.c_stack]);
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
     }
@@ -348,7 +347,7 @@
       Z_ROT[4] = sAng * z;
       Z_ROT[1] = -sAng * z;
       Z_ROT[5] = cAng * z;
-      this.m_stack[this.c_stack] = mat4.multiply(this.m_stack[this.c_stack], Z_ROT);
+      this.m_stack[this.c_stack] = mat4.multiply(Z_ROT, this.m_stack[this.c_stack]);
     }
     if (y) {
       var Y_ROT = this.getIdentity();
@@ -356,7 +355,7 @@
       Y_ROT[8] = -sAng * y;
       Y_ROT[2] = sAng * y;
       Y_ROT[10] = cAng * y;
-      this.m_stack[this.c_stack] = mat4.multiply(this.m_stack[this.c_stack], Y_ROT);
+      this.m_stack[this.c_stack] = mat4.multiply(Y_ROT, this.m_stack[this.c_stack]);
     }
     if (x) {
       var X_ROT = this.getIdentity();
@@ -364,7 +363,7 @@
       X_ROT[9] = sAng * x;
       X_ROT[6] = -sAng * x;
       X_ROT[10] = cAng * x;
-      this.m_stack[this.c_stack] = mat4.multiply(this.m_stack[this.c_stack], X_ROT);
+      this.m_stack[this.c_stack] = mat4.multiply(X_ROT, this.m_stack[this.c_stack]);
     }
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
@@ -394,25 +393,28 @@
       return function(context) {
         switch(context) {
           case "2d":
-            return    gl2d.canvas.$getContext(context);
+            return gl2d.canvas.$getContext(context);
 
           case "webgl-2d":
-            gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
+            var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
 
             gl2d.initShaders();
             gl2d.addCanvas2DAPI();
-            gl2d.gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
+
+            gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
 
             // Transparency options
-            gl2d.gl.enable(gl2d.gl.DEPTH_TEST);
-            gl2d.gl.enable(gl2d.gl.BLEND);
-            gl2d.gl.blendFunc(gl2d.gl.SRC_ALPHA, gl2d.gl.ONE_MINUS_SRC_ALPHA);
+            gl.enable(gl.DEPTH_TEST);
+            gl.enable(gl.BLEND);
+
+            gl.depthFunc(gl.LEQUAL);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
             // Default white background
-            gl2d.gl.clearColor(1, 1, 1, 1);
-            gl2d.gl.clear(gl2d.gl.COLOR_BUFFER_BIT | gl2d.gl.DEPTH_BUFFER_BIT);
+            gl.clearColor(1, 1, 1, 1);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-            return gl2d.gl;
+            return gl;
         }
       };
     }(this));
@@ -497,8 +499,13 @@
     // Converts rgb(a) color string to gl color array
     function colorStringToArray(colorString) {
       var glColor = colorString.replace(/[^\d.,]/g, "").split(",");
-      glColor[0] /= 255; glColor[1] /= 255; glColor[2] /= 255;
+      glColor[0] = parseInt(glColor[0]);
+      glColor[1] = parseInt(glColor[1]);
+      glColor[2] = parseInt(glColor[2]);
+      glColor[3] = parseFloat(glColor[3]);
 
+      glColor[0] /= 255; glColor[1] /= 255; glColor[2] /= 255;
+      
       return glColor;
     }
 
@@ -526,28 +533,29 @@
 
     gl.translate = function translate(x, y) {
       gl2d.transform.translate([x, y, 0]);
-      gl2d.transform.pushMatrix();
     }; //translate
 
     gl.rotate = function rotate(a) {
       gl2d.transform.rotate([0, 0, a]);
-      gl2d.transform.pushMatrix();
     }; //rotate
 
     gl.scale = function scale(x, y) {
       gl2d.transform.scale([x, y, 0]);
-      gl2d.transform.pushMatrix();
     }; //scale
+
+    gl.save = function save() {
+      gl2d.transform.pushMatrix();
+    }; //save
+
+    gl.restore = function restore() {
+      gl2d.transform.popMatrix();
+    }; //restore
 
     var rectVertexPositionBuffer;
     var rectVertexColorBuffer;
     var rectVerts = new Float32Array([0,0,0, 0,1,0, 1,1,0, 1,0,0]);
 
     gl.fillRect = function fillRect(x, y, width, height) {
-      //var rectVerts = new Float32Array([x,y,0, 
-      //                                  x,y+height,0, 
-      //                                  x+width,y+height,0, 
-      //                                  x+width,y,0]);
       var rectVerts = new Float32Array([x,y,0, x,y+height,0, x+width,y+height,0, x+width,y,0]);
 
       rectVertexPositionBuffer = gl.createBuffer();

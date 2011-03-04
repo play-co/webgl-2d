@@ -29,7 +29,7 @@
       function draw(ctx) {
         ctx.save();
           ctx.translate(width/2, height/2);
-          ctx.fillStyle = "rgba(50, 50, 255, 0.1)";
+          ctx.fillStyle = "rgba(50, 50, 255, 0.5)";
           for(var i = 0; i < 50; i++) {
             ctx.scale(2,2);
             ctx.fillRect(0, 0, 50, 50);
@@ -39,7 +39,7 @@
         ctx.restore();
 
         ctx.translate(width/2 -150, height/2 -150);
-        ctx.fillStyle = "rgba(255, 100, 255, 0.2)";
+        ctx.fillStyle = "rgba(255, 100, 255, 0.4)";
         ctx.fillRect(0,0, 300, 300);
       }
     </script>
