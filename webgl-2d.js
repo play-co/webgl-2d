@@ -48,6 +48,11 @@
   var M_PI = 3.1415926535897932384626433832795028841968;
   var M_TWO_PI = 2.0 * M_PI;
   var M_HALF_PI = M_PI / 2.0;
+  var cubicvr_identity = [1.0, 0.0, 0.0, 0.0,
+                          0.0, 1.0, 0.0, 0.0,
+                          0.0, 0.0, 1.0, 0.0,
+                          0.0, 0.0, 0.0, 1.0];
+
   var vec3 = {
     length: function(pt) {
       return Math.sqrt(pt[0] * pt[0] + pt[1] * pt[1] + pt[2] * pt[2]);
@@ -245,36 +250,28 @@
     if (!this.c_stack) {
       return this.m_stack[0];
     }
-
-    if (this.valid !== this.c_stack) {
-      if (this.valid > this.c_stack) {
-        while (this.valid > this.c_stack + 1) {
-          this.valid--;
-          this.m_cache.pop();
-        }
-      }
-      else {
-        for (var i = this.valid; i <= this.c_stack; i++) {
-          if (i === 0) {
-            this.m_cache[0] = this.m_stack[0];
-          }
-          else {
-            this.m_cache[i] = mat4.multiply(this.m_stack[i], this.m_cache[i - 1]);
-          }
-          this.valid++;
-        } //for
-      } //if
-      this.result = this.m_cache[this.valid - 1];
-      this.valid = 0;
-    } //if
+    
+    var m = cubicvr_identity;
+    
+    if (this.valid > this.c_stack-1) this.valid = this.c_stack-1;
+                
+    for (var i = this.valid; i < this.c_stack+1; i++) {
+      m = mat4.multiply(this.m_stack[i],m);
+      this.m_cache[i] = m;
+    }
+      
+    this.valid = this.c_stack-1;
+      
+    this.result = this.m_cache[this.c_stack];
+    
     return this.result;
-  }; //getResult
+  };
 
   Transform.prototype.pushMatrix = function(m) {
     this.c_stack++;
-    this.m_stack.push(m ? m : this.getIdentity());
+    this.m_stack[this.c_stack] = (m ? m : cubicvr_identity);
     return this;
-  }; //pushMatrix
+  };
 
   Transform.prototype.popMatrix = function() {
     if (this.c_stack === 0) {
@@ -513,28 +510,29 @@
 
     gl.translate = function translate(x, y) {
       gl2d.transform.translate([x, y, 0]);
-      gl2d.transform.pushMatrix();
     }; //translate
 
     gl.rotate = function rotate(a) {
       gl2d.transform.rotate([0, 0, a]);
-      gl2d.transform.pushMatrix();
     }; //rotate
 
     gl.scale = function scale(x, y) {
       gl2d.transform.scale([x, y, 0]);
-      gl2d.transform.pushMatrix();
     }; //scale
+
+    gl.save = function save() {
+      gl2d.transform.pushMatrix();
+    }; //save
+
+    gl.restore = function restore() {
+      gl2d.transform.popMatrix();
+    }; //restore
 
     var rectVertexPositionBuffer;
     var rectVertexColorBuffer;
     var rectVerts = new Float32Array([0,0,0, 0,1,0, 1,1,0, 1,0,0]);
 
     gl.fillRect = function fillRect(x, y, width, height) {
-      //var rectVerts = new Float32Array([x,y,0, 
-      //                                  x,y+height,0, 
-      //                                  x+width,y+height,0, 
-      //                                  x+width,y,0]);
       var rectVerts = new Float32Array([x,y,0, x,y+height,0, x+width,y+height,0, x+width,y,0]);
 
       rectVertexPositionBuffer = gl.createBuffer();
@@ -556,6 +554,7 @@
 
       var trans = gl2d.transform;
       var tMatrix = trans.getResult();
+      gl2d.transform = new Transform(tMatrix);
 
       gl.uniformMatrix4fv(gl2d.shaderProgram.uOMatrix, false, new Float32Array(tMatrix));
       gl.uniformMatrix4fv(gl2d.shaderProgram.uPMatrix, false, new Float32Array(gl2d.pMatrix));
