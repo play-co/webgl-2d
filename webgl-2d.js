@@ -396,13 +396,7 @@
             return gl2d.canvas.$getContext(context);
 
           case "webgl-2d":
-            var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl", {
-              alpha : false ,
-              antialias : true ,
-              depth : true ,
-              stencil : false ,
-              premultipliedAlpha: false 
-            });
+            var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
 
             gl2d.initShaders();
             gl2d.addCanvas2DAPI();
@@ -413,11 +407,15 @@
             gl.clearColor(1, 1, 1, 1);
             gl.clear(gl.COLOR_BUFFER_BIT); // | gl.DEPTH_BUFFER_BIT);
 
-            // Transparency options
-            //gl.enable(gl.DEPTH_TEST);
-            gl.enable(gl.BLEND);
+            // Disables writing to dest-alpha
+            gl.colorMask(1,1,1,0);
 
+            // Depth options
+            //gl.enable(gl.DEPTH_TEST);
             //gl.depthFunc(gl.LEQUAL);
+
+            // Blending options
+            gl.enable(gl.BLEND);
             gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
             return gl;
