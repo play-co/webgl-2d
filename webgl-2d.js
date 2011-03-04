@@ -403,9 +403,14 @@
             gl2d.addCanvas2DAPI();
             gl2d.gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
 
+            // Transparency options
+            gl2d.gl.enable(gl2d.gl.DEPTH_TEST);
+            gl2d.gl.enable(gl2d.gl.BLEND);
+            gl2d.gl.blendFunc(gl2d.gl.SRC_ALPHA, gl2d.gl.ONE_MINUS_SRC_ALPHA);
+
             // Default white background
             gl2d.gl.clearColor(1, 1, 1, 1);
-            gl2d.gl.clear(gl2d.gl.COLOR_BUFFER_BIT);
+            gl2d.gl.clear(gl2d.gl.COLOR_BUFFER_BIT | gl2d.gl.DEPTH_BUFFER_BIT);
 
             return gl2d.gl;
         }
@@ -443,7 +448,7 @@
     "varying vec4 vColor;",
 
     "void main(void) {",
-    "gl_Position = uPMatrix * uOMatrix * vec4(aVertexPosition.xyz, 1.0);",
+    "gl_Position = uPMatrix * uOMatrix * vec4(aVertexPosition, 1.0);",
     "vColor = aVertexColor;",
     "}"
   ].join("\n");
@@ -510,6 +515,14 @@
         gl2d.strokeStyle = colorStringToArray(value); 
       }
     });
+
+    gl.save = function save() {
+      gl2d.transform.pushMatrix();
+    };
+
+    gl.restore = function restore() {
+      gl2d.transform.popMatrix();
+    };
 
     gl.translate = function translate(x, y) {
       gl2d.transform.translate([x, y, 0]);
