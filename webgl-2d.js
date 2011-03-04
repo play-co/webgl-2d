@@ -301,11 +301,13 @@
     if (typeof(x) === 'object') {
       return this.translate(x[0], x[1], x[2]);
     }
+
     var m = this.getIdentity();
     m[12] = x;
     m[13] = y;
     m[14] = z;
-    this.m_stack[this.c_stack] = mat4.multiply(this.m_stack[this.c_stack], m);
+    this.m_stack[this.c_stack] = mat4.multiply(m, this.m_stack[this.c_stack]);
+
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
     }
@@ -320,7 +322,7 @@
     m[0] = x;
     m[5] = y;
     m[10] = z;
-    this.m_stack[this.c_stack] = mat4.multiply(this.m_stack[this.c_stack], m);
+    this.m_stack[this.c_stack] = mat4.multiply(m, this.m_stack[this.c_stack]);
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
     }
@@ -345,7 +347,7 @@
       Z_ROT[4] = sAng * z;
       Z_ROT[1] = -sAng * z;
       Z_ROT[5] = cAng * z;
-      this.m_stack[this.c_stack] = mat4.multiply(this.m_stack[this.c_stack], Z_ROT);
+      this.m_stack[this.c_stack] = mat4.multiply(Z_ROT, this.m_stack[this.c_stack]);
     }
     if (y) {
       var Y_ROT = this.getIdentity();
@@ -353,7 +355,7 @@
       Y_ROT[8] = -sAng * y;
       Y_ROT[2] = sAng * y;
       Y_ROT[10] = cAng * y;
-      this.m_stack[this.c_stack] = mat4.multiply(this.m_stack[this.c_stack], Y_ROT);
+      this.m_stack[this.c_stack] = mat4.multiply(Y_ROT, this.m_stack[this.c_stack]);
     }
     if (x) {
       var X_ROT = this.getIdentity();
@@ -361,7 +363,7 @@
       X_ROT[9] = sAng * x;
       X_ROT[6] = -sAng * x;
       X_ROT[10] = cAng * x;
-      this.m_stack[this.c_stack] = mat4.multiply(this.m_stack[this.c_stack], X_ROT);
+      this.m_stack[this.c_stack] = mat4.multiply(X_ROT, this.m_stack[this.c_stack]);
     }
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
@@ -554,7 +556,6 @@
 
       var trans = gl2d.transform;
       var tMatrix = trans.getResult();
-      gl2d.transform = new Transform(tMatrix);
 
       gl.uniformMatrix4fv(gl2d.shaderProgram.uOMatrix, false, new Float32Array(tMatrix));
       gl.uniformMatrix4fv(gl2d.shaderProgram.uPMatrix, false, new Float32Array(gl2d.pMatrix));
