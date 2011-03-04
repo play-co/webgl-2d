@@ -200,6 +200,27 @@
         return m_inv;
       }
       return null; 
+    },
+    lookat: function(eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz) {
+      var forward = [], side = [], up = [];
+      var m = [];
+      forward[0] = centerx - eyex;
+      forward[1] = centery - eyey;
+      forward[2] = centerz - eyez;
+      up[0] = upx;
+      up[1] = upy;
+      up[2] = upz;
+      forward = vec3.normalize(forward);
+      /* Side = forward x up */
+      var side = vec3.cross(forward, up);
+      size = vec3.normalize(side);
+      /* Recompute up as: up = side x forward */
+      up = vec3.cross(side, forward);
+      var m = [ side[0], up[0], -forward[0], 0, side[1], up[1], -forward[1], 0, side[2], up[2], -forward[2], 0, 0, 0, 0, 1];
+      var t = new Transform();
+      t.translate([-eyex,-eyey,-eyez]);
+      t.pushMatrix(m);
+      return t.getResult();
     }
   }; //mat4
 
@@ -238,12 +259,13 @@
             this.m_cache[0] = this.m_stack[0];
           }
           else {
-            this.m_cache[i] = mat4.multiply(this.m_cache[i - 1], this.m_stack[i]);
+            this.m_cache[i] = mat4.multiply(this.m_stack[i], this.m_cache[i - 1]);
           }
           this.valid++;
         } //for
       } //if
       this.result = this.m_cache[this.valid - 1];
+      this.valid = 0;
     } //if
     return this.result;
   }; //getResult
@@ -317,8 +339,8 @@
     }
     var sAng, cAng;
     if (x || y || z) {
-      sAng = Math.sin(-ang * (M_PI / 180.0));
-      cAng = Math.cos(-ang * (M_PI / 180.0));
+      sAng = Math.sin(-ang);
+      cAng = Math.cos(-ang);
     }
     if (z) {
       var Z_ROT = this.getIdentity();
@@ -359,6 +381,10 @@
     this.fillStyle      = [0, 0, 0, 1]; // default black
     this.strokeStyle    = [0, 0, 0, 1]; // default black
     this.transform      = new Transform();
+    this.pMatrix        = [2/canvas.width, 0, 0, 0,
+                           0, -2/canvas.height, 0, 0,
+                           0, 0, 1, 1,
+                          -1, 1, 0, 1];
 
     // Store getContext function for later use
     canvas.$getContext = canvas.getContext;
@@ -375,6 +401,7 @@
 
             gl2d.initShaders();
             gl2d.addCanvas2DAPI();
+            gl2d.gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
 
             // Default white background
             gl2d.gl.clearColor(1, 1, 1, 1);
@@ -411,11 +438,12 @@
     "attribute vec3 aVertexPosition;",
     "attribute vec4 aVertexColor;",
     "uniform mat4 uOMatrix;",
+    "uniform mat4 uPMatrix;",
 
     "varying vec4 vColor;",
 
     "void main(void) {",
-    "gl_Position = uOMatrix * vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);",
+    "gl_Position = uPMatrix * uOMatrix * vec4(aVertexPosition.xyz, 1.0);",
     "vColor = aVertexColor;",
     "}"
   ].join("\n");
@@ -446,6 +474,7 @@
     gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
 
     this.shaderProgram.uOMatrix = gl.getUniformLocation(this.shaderProgram, 'uOMatrix');
+    this.shaderProgram.uPMatrix = gl.getUniformLocation(this.shaderProgram, 'uPMatrix');
   };
 
   // Maintains an array of all WebGL2D instances
@@ -483,16 +512,18 @@
     });
 
     gl.translate = function translate(x, y) {
-      //gl2d.transform.translate([x, -y, 0]);
-      gl2d.transform.translate([x/gl2d.canvas.width * 2.0 - 1.0, -y/gl2d.canvas.height * 2.0, 0]);
+      gl2d.transform.translate([x, y, 0]);
+      gl2d.transform.pushMatrix();
     }; //translate
 
     gl.rotate = function rotate(a) {
       gl2d.transform.rotate([0, 0, a]);
+      gl2d.transform.pushMatrix();
     }; //rotate
 
     gl.scale = function scale(x, y) {
       gl2d.transform.scale([x, y, 0]);
+      gl2d.transform.pushMatrix();
     }; //scale
 
     var rectVertexPositionBuffer;
@@ -500,6 +531,12 @@
     var rectVerts = new Float32Array([0,0,0, 0,1,0, 1,1,0, 1,0,0]);
 
     gl.fillRect = function fillRect(x, y, width, height) {
+      //var rectVerts = new Float32Array([x,y,0, 
+      //                                  x,y+height,0, 
+      //                                  x+width,y+height,0, 
+      //                                  x+width,y,0]);
+      var rectVerts = new Float32Array([x,y,0, x,y+height,0, x+width,y+height,0, x+width,y,0]);
+
       rectVertexPositionBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
 
@@ -518,13 +555,12 @@
       }
 
       var trans = gl2d.transform;
-      trans.translate([x, -y, 0]);
       var tMatrix = trans.getResult();
 
       gl.uniformMatrix4fv(gl2d.shaderProgram.uOMatrix, false, new Float32Array(tMatrix));
+      gl.uniformMatrix4fv(gl2d.shaderProgram.uPMatrix, false, new Float32Array(gl2d.pMatrix));
 
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(gl2d.shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
