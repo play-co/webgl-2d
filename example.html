@@ -33,14 +33,12 @@
       }
 
       function draw(ctx) {
-        ctx.scale(2, 2);
-        ctx.translate(5, 5);
-        ctx.fillStyle = "rgba(0, 128, 64, 1.0)"; // green
-        ctx.fillRect(0, 0, 60, 60);
-        ctx.scale(.5, .5);
-        ctx.rotate(-.1);
         ctx.fillStyle = "rgba(255, 128, 64, 1.0)"; // orange
         ctx.fillRect(40, 40, 100, 100);
+        ctx.rotate(.4);
+        ctx.translate(100, 20);
+        ctx.fillStyle = "rgba(0, 128, 64, 1.0)"; // green
+        ctx.fillRect(80, 80, 100, 100);
       }
     </script>
   
