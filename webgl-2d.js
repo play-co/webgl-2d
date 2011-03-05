@@ -48,10 +48,6 @@
   var M_PI = 3.1415926535897932384626433832795028841968;
   var M_TWO_PI = 2.0 * M_PI;
   var M_HALF_PI = M_PI / 2.0;
-  var cubicvr_identity = [1.0, 0.0, 0.0, 0.0,
-                          0.0, 1.0, 0.0, 0.0,
-                          0.0, 0.0, 1.0, 0.0,
-                          0.0, 0.0, 0.0, 1.0];
 
   var vec3 = {
     length: function(pt) {
@@ -93,7 +89,13 @@
       return (Math.abs(a[0] - b[0]) < epsilon && Math.abs(a[1] - b[1]) < epsilon && Math.abs(a[2] - b[2]) < epsilon);
     },
   }; 
+
   var mat4 = {
+    identity: [1.0, 0.0, 0.0, 0.0,
+               0.0, 1.0, 0.0, 0.0,
+               0.0, 0.0, 1.0, 0.0,
+               0.0, 0.0, 0.0, 1.0],
+
     multiply: function (m1, m2) {
       var mOut = [];
       mOut[0] = m2[0] * m1[0] + m2[4] * m1[1] + m2[8] * m1[2] + m2[12] * m1[3];
@@ -251,7 +253,7 @@
       return this.m_stack[0];
     }
     
-    var m = cubicvr_identity;
+    var m = mat4.identity;
     
     if (this.valid > this.c_stack-1) this.valid = this.c_stack-1;
                 
@@ -269,7 +271,7 @@
 
   Transform.prototype.pushMatrix = function(m) {
     this.c_stack++;
-    this.m_stack[this.c_stack] = (m ? m : cubicvr_identity);
+    this.m_stack[this.c_stack] = (m ? m : mat4.identity);
     return this;
   };
 
@@ -399,6 +401,8 @@
             var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
 
             gl2d.initShaders();
+            gl2d.initBuffers();
+
             gl2d.addCanvas2DAPI();
 
             gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
@@ -448,14 +452,15 @@
   var vsSource = [
     "attribute vec3 aVertexPosition;",
     "attribute vec4 aVertexColor;",
+
     "uniform mat4 uOMatrix;",
     "uniform mat4 uPMatrix;",
 
     "varying vec4 vColor;",
 
     "void main(void) {",
-    "gl_Position = uPMatrix * uOMatrix * vec4(aVertexPosition, 1.0);",
-    "vColor = aVertexColor;",
+      "gl_Position = uPMatrix * uOMatrix * vec4(aVertexPosition, 1.0);",
+      "vColor = aVertexColor;",
     "}"
   ].join("\n");
 
@@ -488,6 +493,17 @@
     this.shaderProgram.uPMatrix = gl.getUniformLocation(this.shaderProgram, 'uPMatrix');
   };
 
+  var rectVertexPositionBuffer;
+  var rectVertexColorBuffer;
+  var rectVerts = new Float32Array([0,0,0, 0,1,0, 1,1,0, 1,0,0]);
+
+  WebGL2D.prototype.initBuffers = function initBuffers() {
+    var gl = this.gl;
+
+    rectVertexPositionBuffer  = gl.createBuffer();
+    rectVertexColorBuffer     = gl.createBuffer();
+  };
+
   // Maintains an array of all WebGL2D instances
   WebGL2D.instances = [];
 
@@ -503,11 +519,6 @@
     // Converts rgb(a) color string to gl color array
     function colorStringToArray(colorString) {
       var glColor = colorString.replace(/[^\d.,]/g, "").split(",");
-      glColor[0] = parseInt(glColor[0]);
-      glColor[1] = parseInt(glColor[1]);
-      glColor[2] = parseInt(glColor[2]);
-      glColor[3] = parseFloat(glColor[3]);
-
       glColor[0] /= 255; glColor[1] /= 255; glColor[2] /= 255;
       
       return glColor;
@@ -537,46 +548,28 @@
 
     gl.translate = function translate(x, y) {
       gl2d.transform.translate([x, y, 0]);
-    }; //translate
+    }; 
 
     gl.rotate = function rotate(a) {
       gl2d.transform.rotate([0, 0, a]);
-    }; //rotate
+    };
 
     gl.scale = function scale(x, y) {
       gl2d.transform.scale([x, y, 0]);
-    }; //scale
-
-    gl.save = function save() {
-      gl2d.transform.pushMatrix();
-    }; //save
-
-    gl.restore = function restore() {
-      gl2d.transform.popMatrix();
-    }; //restore
-
-    var rectVertexPositionBuffer;
-    var rectVertexColorBuffer;
-    var rectVerts = new Float32Array([0,0,0, 0,1,0, 1,1,0, 1,0,0]);
+    };
 
     gl.fillRect = function fillRect(x, y, width, height) {
       var rectVerts = new Float32Array([x,y,0, x,y+height,0, x+width,y+height,0, x+width,y,0]);
 
-      rectVertexPositionBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-
       gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
 
-      rectVertexColorBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
       
       var colors = [];
 
       for (var i = 0; i < 4; i++) {
-        colors.push(gl2d.fillStyle[0]);
-        colors.push(gl2d.fillStyle[1]);
-        colors.push(gl2d.fillStyle[2]);
-        colors.push(gl2d.fillStyle[3]);
+        colors = colors.concat(gl2d.fillStyle);
       }
 
       var trans = gl2d.transform;
@@ -593,6 +586,36 @@
       gl.vertexAttribPointer(gl2d.shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
 
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    };
+
+    gl.strokeRect = function strokeRect(x, y, width, height) {
+      var rectVerts = new Float32Array([x,y,0, x,y+height,0, x+width,y+height,0, x+width,y,0]);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
+      
+      var colors = [];
+
+      for (var i = 0; i < 4; i++) {
+        colors = colors.concat(gl2d.strokeStyle);
+      }
+
+      var trans = gl2d.transform;
+      var tMatrix = trans.getResult();
+
+      gl.uniformMatrix4fv(gl2d.shaderProgram.uOMatrix, false, new Float32Array(tMatrix));
+      gl.uniformMatrix4fv(gl2d.shaderProgram.uPMatrix, false, new Float32Array(gl2d.pMatrix));
+
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.vertexAttribPointer(gl2d.shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
+      gl.vertexAttribPointer(gl2d.shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+
+      gl.drawArrays(gl.LINE_LOOP, 0, 4);
     };
   };
 

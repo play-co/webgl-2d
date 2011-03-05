@@ -33,6 +33,7 @@ WebGL-2D is a work in progress and currently supports a very small subset of the
 
 * strokeStyle
 * fillStyle
+* strokeRect
 * fillRect
 * translate
 * rotate
