@@ -42,3 +42,17 @@ WebGL-2D is a work in progress and currently supports a very small subset of the
 * scale
 * save
 * restore
+* lineWidth
+
+Properties added but currently not working
+
+* lineCap
+* lineJoin
+* miterLimit
+* shadowOffsetX
+* shadowOffsetY
+* shadowBlur
+* shadowColor
+* font
+* textAlign
+* textBaseline

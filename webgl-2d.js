@@ -379,8 +379,6 @@
     this.fs             = undefined;
     this.vs             = undefined;
     this.shaderProgram  = undefined;
-    this.fillStyle      = [0, 0, 0, 1]; // default black
-    this.strokeStyle    = [0, 0, 0, 1]; // default black
     this.transform      = new Transform();
     this.pMatrix        = [2/canvas.width, 0, 0, 0,
                            0, -2/canvas.height, 0, 0,
@@ -402,8 +400,7 @@
 
             gl2d.initShaders();
             gl2d.initBuffers();
-
-            gl2d.addCanvas2DAPI();
+            gl2d.initCanvas2DAPI();
 
             gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
 
@@ -515,31 +512,64 @@
   };
 
   // Extends gl context with Canvas2D API
-  WebGL2D.prototype.addCanvas2DAPI = function addCanvas2DAPI() {
+  WebGL2D.prototype.initCanvas2DAPI = function initCanvas2DAPI() {
     var gl2d = this,
         gl   = this.gl;
 
-    // Converts rgb(a) color string to gl color array
-    function colorStringToArray(colorString) {
+    // Converts rgb(a) color string to gl color vector
+    function colorStringToVec4(colorString) {
       var glColor = colorString.replace(/[^\d.,]/g, "").split(",");
-      glColor[0] /= 255; glColor[1] /= 255; glColor[2] /= 255;
+      glColor[0] /= 255; glColor[1] /= 255; glColor[2] /= 255; glColor[3] = glColor[3] || 1.0;
       
       return glColor;
     }
 
-    // Setter for fillStyle
+    // WebGL requires colors as a vector while Canvas2D sets colors as an rgba string
+    // These getters and setters store the original rgba string as well as convert to a vector
+    var fillStyle  = [0, 0, 0, 1]; // default black
+    var fillString = "rgba(0, 0, 0, 1.0)";
+
     Object.defineProperty(gl, "fillStyle", {
+      get: function() { return fillString; },
       set: function(value) {
-        gl2d.fillStyle = colorStringToArray(value); 
+        fillStyle   = colorStringToVec4(value); 
+        fillString  = value;
       }
     });
 
-    // Setter for strokeStyle
+    var strokeStyle   = [0, 0, 0, 1]; // default black
+    var strokeString  = "rgba(0, 0, 0, 1.0)";
+
     Object.defineProperty(gl, "strokeStyle", {
+      get: function() { return strokeString; },
       set: function(value) {
-        gl2d.strokeStyle = colorStringToArray(value); 
+        strokeStyle   = colorStringToVec4(value); 
+        strokeString  = value;
       }
     });
+
+    // WebGL already has a lineWidth() function but Canvas2D requires a lineWidth property
+    // Store the original lineWidth() function for later use
+    gl.$lineWidth = gl.lineWidth;
+    var lineWidth = 1.0;
+
+    Object.defineProperty(gl, "lineWidth", {
+      get: function() { return lineWidth; },
+      set: function(value) {
+        gl.$lineWidth(value); 
+      }
+    });
+    
+    // Currently unsupported attributes and their default values
+    gl.lineCap        = "butt";
+    gl.lineJoin       = "miter";
+    gl.miterLimit     = 10;
+    gl.shadowOffsetX  = 0;
+    gl.shadowOffsetY  = 0;
+    gl.shadowBlur     = 0;
+    gl.shadowColor    = "rgba(0, 0, 0, 0)";
+    gl.font           = "10px sans-serif";
+    gl.textAlign      = "start";
 
     gl.save = function save() {
       gl2d.transform.pushMatrix();
@@ -565,7 +595,7 @@
       var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform, colors = [];
 
       for (var i = 0; i < 4; i++) {
-        colors = colors.concat(gl2d.fillStyle);
+        colors = colors.concat(fillStyle);
       }
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
@@ -593,7 +623,7 @@
       var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform, colors = [];
 
       for (var i = 0; i < 4; i++) {
-        colors = colors.concat(gl2d.strokeStyle);
+        colors = colors.concat(strokeStyle);
       }
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
