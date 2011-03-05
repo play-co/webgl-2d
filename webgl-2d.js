@@ -502,6 +502,9 @@
 
     rectVertexPositionBuffer  = gl.createBuffer();
     rectVertexColorBuffer     = gl.createBuffer();
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
   };
 
   // Maintains an array of all WebGL2D instances
@@ -559,63 +562,59 @@
     };
 
     gl.fillRect = function fillRect(x, y, width, height) {
-      var rectVerts = new Float32Array([x,y,0, x,y+height,0, x+width,y+height,0, x+width,y,0]);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
-      
-      var colors = [];
+      var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform, colors = [];
 
       for (var i = 0; i < 4; i++) {
         colors = colors.concat(gl2d.fillStyle);
       }
 
-      var trans = gl2d.transform;
-      var tMatrix = trans.getResult();
-
-      gl.uniformMatrix4fv(gl2d.shaderProgram.uOMatrix, false, new Float32Array(tMatrix));
-      gl.uniformMatrix4fv(gl2d.shaderProgram.uPMatrix, false, new Float32Array(gl2d.pMatrix));
-
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-      gl.vertexAttribPointer(gl2d.shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
-      gl.vertexAttribPointer(gl2d.shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
+
+      transform.pushMatrix();
+
+      transform.translate(x, y, 0);
+      transform.scale(width, height, 1);
+
+      gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, new Float32Array(transform.getResult()));
+      gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, new Float32Array(gl2d.pMatrix));
 
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+      transform.popMatrix();
     };
 
     gl.strokeRect = function strokeRect(x, y, width, height) {
-      var rectVerts = new Float32Array([x,y,0, x,y+height,0, x+width,y+height,0, x+width,y,0]);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
-      
-      var colors = [];
+      var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform, colors = [];
 
       for (var i = 0; i < 4; i++) {
         colors = colors.concat(gl2d.strokeStyle);
       }
 
-      var trans = gl2d.transform;
-      var tMatrix = trans.getResult();
-
-      gl.uniformMatrix4fv(gl2d.shaderProgram.uOMatrix, false, new Float32Array(tMatrix));
-      gl.uniformMatrix4fv(gl2d.shaderProgram.uPMatrix, false, new Float32Array(gl2d.pMatrix));
-
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-      gl.vertexAttribPointer(gl2d.shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
-      gl.vertexAttribPointer(gl2d.shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
+
+      transform.pushMatrix();
+
+      transform.translate(x, y, 0);
+      transform.scale(width, height, 1);
+
+      gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, new Float32Array(transform.getResult()));
+      gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, new Float32Array(gl2d.pMatrix));
 
       gl.drawArrays(gl.LINE_LOOP, 0, 4);
+
+      transform.popMatrix();
     };
   };
 
