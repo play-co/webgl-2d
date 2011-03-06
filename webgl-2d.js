@@ -629,7 +629,7 @@
     };
 
     gl.fillRect = function fillRect(x, y, width, height) {
-      var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform, colors = [];
+      var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform;
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
@@ -649,7 +649,7 @@
     };
 
     gl.strokeRect = function strokeRect(x, y, width, height) {
-      var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform, colors = [];
+      var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform;
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
@@ -668,16 +668,53 @@
       transform.popMatrix();
     };
 
+
+    var subPaths = [];
+
+    function SubPath(x, y) {
+      this.closed = false;
+      this.verts = [[x, y]];
+    }
+
+    // Empty the list of subpaths so that the context once again has zero subpaths
     gl.beginPath = function beginPath() {
+      subPaths.length = 0;
     };
 
+    // Mark last subpath as closed and create a new subpath with the same starting point as the previous subpath
     gl.closePath = function closePath() {
+      if (subPaths.length) {
+        // Mark last subpath closed.
+        var prevPath = subPaths[subPaths.length -1], startX = prevPath.verts[0][0], startY = prevPath.verts[0][1];
+        prevPath.closed = true;
+
+        // Create new subpath using the starting position of previous subpath
+        var newPath = new SubPath(startX, startY);
+        subPaths.push(newPath);
+      }
     };
 
-    gl.moveTo = function moveTo() {
+    // Create a new subpath with the specified point as its first (and only) point
+    gl.moveTo = function moveTo(x, y) {
+      subPaths.push(new SubPath(x, y));
     };
 
-    gl.lineTo = function lineTo() {
+    gl.lineTo = function lineTo(x, y) {
+      if (subPaths.length) {
+        subPaths[subPaths.length -1].verts.push([x, y]);
+      } else {
+        // Create a new subpath if none currently exist
+        moveTo(x, y);
+      }
+    };
+
+    // Adds a closed rect subpath and creates a new subpath
+    gl.rect = function rect(x, y, w, h) {
+      moveTo(x, y);
+      lineTo(x + w, y);
+      lineTo(x + w, y + h);
+      lineTo(x, y + h);
+      closePath();
     };
 
     gl.fill = function fill() {
