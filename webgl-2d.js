@@ -467,30 +467,34 @@
   WebGL2D.prototype.initShaders = function initShaders() {
     var gl = this.gl;
 
-    this.fs = gl.createShader(gl.FRAGMENT_SHADER);
+    var fs = this.fs = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(this.fs, fsSource);
     gl.compileShader(this.fs);
 
-    this.vs = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(this.vs, vsSource);
-    gl.compileShader(this.vs);
+    var vs = this.vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, vsSource);
+    gl.compileShader(vs);
 
-    this.shaderProgram = gl.createProgram();
-    gl.attachShader(this.shaderProgram, this.vs);
-    gl.attachShader(this.shaderProgram, this.fs);
-    gl.linkProgram(this.shaderProgram);
+    var shaderProgram = this.shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, fs);
+    gl.attachShader(shaderProgram, vs);
+    gl.linkProgram(shaderProgram);
 
-    gl.useProgram(this.shaderProgram);
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+      throw "Could not initialise shaders.";
+    }
 
-    this.shaderProgram.vertexPositionAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
-    gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
+    gl.useProgram(shaderProgram);
+
+    shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+    gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
     // this.shaderProgram.vertexColorAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexColor");
     // gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
 
-    this.shaderProgram.uOMatrix = gl.getUniformLocation(this.shaderProgram, 'uOMatrix');
-    this.shaderProgram.uPMatrix = gl.getUniformLocation(this.shaderProgram, 'uPMatrix');
-    this.shaderProgram.uColor   = gl.getUniformLocation(this.shaderProgram, 'uColor');
+    shaderProgram.uOMatrix = gl.getUniformLocation(shaderProgram, 'uOMatrix');
+    shaderProgram.uPMatrix = gl.getUniformLocation(shaderProgram, 'uPMatrix');
+    shaderProgram.uColor   = gl.getUniformLocation(shaderProgram, 'uColor');
   };
 
   var rectVertexPositionBuffer;
@@ -639,6 +643,24 @@
       gl.drawArrays(gl.LINE_LOOP, 0, 4);
 
       transform.popMatrix();
+    };
+
+    gl.beginPath = function beginPath() {
+    };
+
+    gl.closePath = function closePath() {
+    };
+
+    gl.moveTo = function moveTo() {
+    };
+
+    gl.lineTo = function lineTo() {
+    };
+
+    gl.fill = function fill() {
+    };
+
+    gl.stroke = function stroke() {
     };
   };
 
