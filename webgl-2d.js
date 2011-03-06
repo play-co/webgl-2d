@@ -605,6 +605,29 @@
       gl2d.transform.scale([x, y, 0]);
     };
 
+    gl.transform = function transform(m11, m12, m21, m22, dx, dy) {
+      var m = gl2d.transform.m_stack[gl2d.transform.c_stack];
+
+      /*
+      var m2 = [m11, m21, dx, m12, m22, dy, 0, 0, 1];
+      
+      gl2d.transform.m_stack[gl2d.transform.c_stack] = mat4.multiply(m1, m2);
+      */
+      m[0] *= m11;
+      m[1] *= m21;
+      m[2] *= dx;
+      m[3] *= m12;
+      m[4] *= m22;
+      m[5] *= dy;
+      m[6] = 0;
+      m[7] = 0;
+    };
+
+    gl.setTransform = function setTransform(m11, m12, m21, m22, dx, dy) {
+      gl2d.transform.setIdentity();
+      gl.transform.apply(this, arguments);
+    };
+
     gl.fillRect = function fillRect(x, y, width, height) {
       var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform, colors = [];
 
