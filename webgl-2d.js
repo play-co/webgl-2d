@@ -575,6 +575,12 @@
     gl.font           = "10px sans-serif";
     gl.textAlign      = "start";
 
+    // This attribute will need to control global alpha of objects drawn.
+    gl.globalAlpha    = 1.0;
+
+    // This attribute will need to set the gl.blendFunc mode
+    gl.globalCompositeOperation = "source-over"; 
+
     gl.save = function save() {
       gl2d.transform.pushMatrix();
     };
