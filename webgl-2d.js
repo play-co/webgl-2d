@@ -448,16 +448,18 @@
   // Vertex shader source
   var vsSource = [
     "attribute vec3 aVertexPosition;",
-    "attribute vec4 aVertexColor;",
+    // "attribute vec4 aVertexColor;",
 
     "uniform mat4 uOMatrix;",
     "uniform mat4 uPMatrix;",
+    "uniform vec4 uColor;",
 
     "varying vec4 vColor;",
 
     "void main(void) {",
       "gl_Position = uPMatrix * uOMatrix * vec4(aVertexPosition, 1.0);",
-      "vColor = aVertexColor;",
+      // "vColor = aVertexColor;",
+      "vColor = uColor;",
     "}"
   ].join("\n");
 
@@ -483,11 +485,12 @@
     this.shaderProgram.vertexPositionAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexPosition");
     gl.enableVertexAttribArray(this.shaderProgram.vertexPositionAttribute);
 
-    this.shaderProgram.vertexColorAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexColor");
-    gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
+    // this.shaderProgram.vertexColorAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexColor");
+    // gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
 
     this.shaderProgram.uOMatrix = gl.getUniformLocation(this.shaderProgram, 'uOMatrix');
     this.shaderProgram.uPMatrix = gl.getUniformLocation(this.shaderProgram, 'uPMatrix');
+    this.shaderProgram.uColor   = gl.getUniformLocation(this.shaderProgram, 'uColor');
   };
 
   var rectVertexPositionBuffer;
@@ -519,8 +522,14 @@
     // Converts rgb(a) color string to gl color vector
     function colorStringToVec4(colorString) {
       var glColor = colorString.replace(/[^\d.,]/g, "").split(",");
-      glColor[0] /= 255; glColor[1] /= 255; glColor[2] /= 255; glColor[3] = glColor[3] || 1.0;
+      glColor[0] /= 255; glColor[1] /= 255; 
+      glColor[2] /= 255; glColor[3] = glColor[3] || 1.0;
       
+      /*
+      glColor[0] /= 255; glColor[1] /= 255; 
+      glColor[2] /= 255; glColor[3] = parseFloat(glColor[3]);
+      */
+
       return glColor;
     }
 
@@ -594,26 +603,18 @@
     gl.fillRect = function fillRect(x, y, width, height) {
       var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform, colors = [];
 
-      for (var i = 0; i < 4; i++) {
-        colors = colors.concat(fillStyle);
-      }
-
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
-      gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
-
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
 
       transform.pushMatrix();
 
       transform.translate(x, y, 0);
       transform.scale(width, height, 1);
 
-      gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, new Float32Array(transform.getResult()));
-      gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, new Float32Array(gl2d.pMatrix));
-
+      gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, transform.getResult());
+      gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
+      gl.uniform4f(shaderProgram.uColor, fillStyle[0], fillStyle[1], fillStyle[2], fillStyle[3]);
+      
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
       transform.popMatrix();
@@ -622,25 +623,17 @@
     gl.strokeRect = function strokeRect(x, y, width, height) {
       var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform, colors = [];
 
-      for (var i = 0; i < 4; i++) {
-        colors = colors.concat(strokeStyle);
-      }
-
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexColorBuffer);
-      gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
-
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
 
       transform.pushMatrix();
 
       transform.translate(x, y, 0);
       transform.scale(width, height, 1);
 
-      gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, new Float32Array(transform.getResult()));
-      gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, new Float32Array(gl2d.pMatrix));
+      gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, transform.getResult());
+      gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
+      gl.uniform4f(shaderProgram.uColor, strokeStyle[0], strokeStyle[1], strokeStyle[2], strokeStyle[3]);
 
       gl.drawArrays(gl.LINE_LOOP, 0, 4);
 
