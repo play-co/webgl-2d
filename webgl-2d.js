@@ -523,12 +523,7 @@
     function colorStringToVec4(colorString) {
       var glColor = colorString.replace(/[^\d.,]/g, "").split(",");
       glColor[0] /= 255; glColor[1] /= 255; 
-      glColor[2] /= 255; glColor[3] = glColor[3] || 1.0;
-      
-      /*
-      glColor[0] /= 255; glColor[1] /= 255; 
-      glColor[2] /= 255; glColor[3] = parseFloat(glColor[3]);
-      */
+      glColor[2] /= 255; glColor[3] = parseFloat(glColor[3] || 1);
 
       return glColor;
     }
