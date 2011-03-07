@@ -247,7 +247,7 @@
           case "webgl-2d":
             var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
 
-            gl2d.initShaders(canvas.width, canvas.height);
+            gl2d.initShaders();
             gl2d.initBuffers();
             gl2d.initCanvas2DAPI();
 
@@ -306,7 +306,7 @@
     stackDepth = stackDepth || 1;
     var w = 2 / this.canvas.width, h = -2 / this.canvas.height;
     var vsSource = [
-      "attribute vec3 aVertexPosition;",
+      "attribute vec4 aVertexPosition;",
       "attribute vec2 aTextureCoord;",
 
       "uniform mat3 uOMatrix;",
@@ -330,7 +330,7 @@
         "vec3 position = uOMatrix * vec3(aVertexPosition.x, aVertexPosition.y, 1.0);",
         "gl_Position = pMatrix * vec4(position, 1.0);",
         "vColor = uColor;",
-        "vTextureCoord = aTextureCoord;",
+        "vTextureCoord = aVertexPosition.zw;",
       "}"
     ].join("\n");
     return vsSource;
@@ -374,22 +374,23 @@
 
   var rectVertexPositionBuffer;
   var rectVertexColorBuffer;
-  var texVBO;
-  var rectVerts = new Float32Array([0,0,0, 0,1,0, 1,1,0, 1,0,0]);
-  var rectUVs   = new Float32Array([0,0, 0,1, 1,1, 1,0]);
+
+  // 2D Vertices and Texture UV coords
+  var rectVerts = new Float32Array([
+      0,0, 0,0, 
+      0,1, 0,1, 
+      1,1, 1,1, 
+      1,0, 1,0
+  ]);
 
   WebGL2D.prototype.initBuffers = function initBuffers() {
     var gl = this.gl;
 
     rectVertexPositionBuffer  = gl.createBuffer();
     rectVertexColorBuffer     = gl.createBuffer();
-    texVBO                    = gl.createBuffer();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, texVBO);
-    gl.bufferData(gl.ARRAY_BUFFER, rectUVs, gl.STATIC_DRAW);
   };
 
   // Maintains an array of all WebGL2D instances
@@ -462,6 +463,8 @@
 
     // This attribute will need to control global alpha of objects drawn.
     gl.globalAlpha    = 1.0;
+
+    gl.fillText = function fillText() {};
 
     var tempCanvas = document.createElement('CANVAS');
     var tempCtx = tempCanvas.getContext('2d');
@@ -536,7 +539,7 @@
       var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform;
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
       transform.pushMatrix();
 
@@ -544,7 +547,6 @@
       transform.scale(width, height);
 
       gl.uniformMatrix3fv(shaderProgram.uOMatrix, false, transform.getResult());
-      //gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
       gl.uniform4f(shaderProgram.uColor, fillStyle[0], fillStyle[1], fillStyle[2], fillStyle[3]);
       
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -556,7 +558,7 @@
       var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform;
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
       transform.pushMatrix();
 
@@ -564,7 +566,6 @@
       transform.scale(width, height);
 
       gl.uniformMatrix3fv(shaderProgram.uOMatrix, false, transform.getResult());
-      //gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
       gl.uniform4f(shaderProgram.uColor, strokeStyle[0], strokeStyle[1], strokeStyle[2], strokeStyle[3]);
 
       gl.drawArrays(gl.LINE_LOOP, 0, 4);
@@ -639,10 +640,13 @@
 
       gl.bindTexture(gl.TEXTURE_2D, this.obj);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); // requires POT texture
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      //gl.generateMipmap(gl.TEXTURE_2D); // requires POT texture
+      gl.bindTexture(gl.TEXTURE_2D, null);
 
       textureCache.push(this);
     }
@@ -664,13 +668,8 @@
         texture = new Texture(image);
       }
 
-      gl.enableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
-
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, texVBO);
-      gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
       gl.bindTexture(gl.TEXTURE_2D, texture.obj);
       gl.activeTexture(gl.TEXTURE0);
@@ -684,11 +683,10 @@
         transform.translate(a, b);
         transform.scale(c, d);
       } else if (arguments.length === 9) {
-        throw "Not yet implemented.";
+        //throw "Not yet implemented.";
       }
 
       gl.uniformMatrix3fv(shaderProgram.uOMatrix, false, transform.getResult());
-      //gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
       gl.uniform1i(shaderProgram.useTexture, true);
       gl.uniform1i(shaderProgram.uSampler, 0);
 
@@ -697,7 +695,6 @@
       transform.popMatrix();
 
       gl.uniform1i(shaderProgram.useTexture, false);
-      gl.disableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
     };
   };
 
