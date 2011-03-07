@@ -550,7 +550,7 @@
       for (var i=0, maxI=transform.c_stack+1; i<maxI; ++i) {
         gl.uniformMatrix3fv(sp.uTransforms[i], false, stack[maxI-1-i]);
       } //for
-    };
+    }
 
     gl.setTransform = function setTransform(m11, m12, m21, m22, dx, dy) {
       gl2d.transform.setIdentity();
