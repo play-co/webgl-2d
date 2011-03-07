@@ -636,13 +636,23 @@
 
     gl.getImageData = function getImageData(x, y, width, height) {
       var data = tempCtx.createImageData(width, height);
-      var buf = new ArrayBuffer(width*height*4);
       gl.readPixels(x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, data.data);
+      var w=width*4, h=height;
+      for (var i=0, maxI=h/2; i<maxI; ++i) {
+        for (var j=0, maxJ=w; j<maxJ; ++j) {
+          var index1 = i * w + j;
+          var index2 = (h-i-1) * w + j;
+          var temp = data.data[index1];
+          data.data[index1] = data.data[index2];
+          data.data[index2] = temp;
+        } //for
+      } //for
+
       return data;
     };
 
-    gl.putImageData = function putImageData(image, x, y) {
-      //basically, drawImage
+    gl.putImageData = function putImageData(imageData, x, y) {
+      gl.drawImage(imageData, x, y);
     };
 
     gl.transform = function transform(m11, m12, m21, m22, dx, dy) {
@@ -767,47 +777,49 @@
     //drawImage(image, dx, dy, dw, dh)
     //drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh) 
     gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
-      image.onload = function() {
-        var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform;
-        var texture = gl.createTexture();
+      var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform;
+      var texture = gl.createTexture();
 
-        gl.enableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
+      gl.enableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
 
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, texVBO);
-        gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ARRAY_BUFFER, texVBO);
+      gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
-        transform.pushMatrix();
+      transform.pushMatrix();
 
-        transform.translate(a, b, 0);
-        transform.scale(image.width, image.height, 1);
+      transform.translate(a, b, 0);
+      transform.scale(image.width, image.height, 1);
 
         
-        gl.activeTexture(gl.TEXTURE0);
+      gl.activeTexture(gl.TEXTURE0);
 
-        gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, transform.getResult());
-        gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
-        gl.uniform1i(shaderProgram.useTexture, true);
-        gl.uniform1i(shaderProgram.uSampler, 0);
+      gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, transform.getResult());
+      gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
+      gl.uniform1i(shaderProgram.useTexture, true);
+      gl.uniform1i(shaderProgram.uSampler, 0);
 
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
-        transform.popMatrix();
+      transform.popMatrix();
 
-        if (arguments.length === 3) {
-        } else if (arguments.length === 5) {
-        } else if (arguments.length === 9) {
-        }
+      if (arguments.length === 3) {
+      } else if (arguments.length === 5) {
+      } else if (arguments.length === 9) {
+      }
 
-        gl.disableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
-      };
+      gl.disableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
     };
   };
 
