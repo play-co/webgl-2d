@@ -89,147 +89,33 @@
       return (Math.abs(a[0] - b[0]) < epsilon && Math.abs(a[1] - b[1]) < epsilon && Math.abs(a[2] - b[2]) < epsilon);
     }
   }; 
-
-  var mat4 = {
-    identity: [1.0, 0.0, 0.0, 0.0,
-               0.0, 1.0, 0.0, 0.0,
-               0.0, 0.0, 1.0, 0.0,
-               0.0, 0.0, 0.0, 1.0],
-
+    var mat3 = {
+    identity: [1.0, 0.0, 0.0,
+               0.0, 1.0, 0.0,
+               0.0, 0.0, 1.0],
     multiply: function (m1, m2) {
       var mOut = [];
-      mOut[0] = m2[0] * m1[0] + m2[4] * m1[1] + m2[8] * m1[2] + m2[12] * m1[3];
-      mOut[1] = m2[1] * m1[0] + m2[5] * m1[1] + m2[9] * m1[2] + m2[13] * m1[3];
-      mOut[2] = m2[2] * m1[0] + m2[6] * m1[1] + m2[10] * m1[2] + m2[14] * m1[3];
-      mOut[3] = m2[3] * m1[0] + m2[7] * m1[1] + m2[11] * m1[2] + m2[15] * m1[3];
-      mOut[4] = m2[0] * m1[4] + m2[4] * m1[5] + m2[8] * m1[6] + m2[12] * m1[7];
-      mOut[5] = m2[1] * m1[4] + m2[5] * m1[5] + m2[9] * m1[6] + m2[13] * m1[7];
-      mOut[6] = m2[2] * m1[4] + m2[6] * m1[5] + m2[10] * m1[6] + m2[14] * m1[7];
-      mOut[7] = m2[3] * m1[4] + m2[7] * m1[5] + m2[11] * m1[6] + m2[15] * m1[7];
-      mOut[8] = m2[0] * m1[8] + m2[4] * m1[9] + m2[8] * m1[10] + m2[12] * m1[11];
-      mOut[9] = m2[1] * m1[8] + m2[5] * m1[9] + m2[9] * m1[10] + m2[13] * m1[11];
-      mOut[10] = m2[2] * m1[8] + m2[6] * m1[9] + m2[10] * m1[10] + m2[14] * m1[11];
-      mOut[11] = m2[3] * m1[8] + m2[7] * m1[9] + m2[11] * m1[10] + m2[15] * m1[11];
-      mOut[12] = m2[0] * m1[12] + m2[4] * m1[13] + m2[8] * m1[14] + m2[12] * m1[15];
-      mOut[13] = m2[1] * m1[12] + m2[5] * m1[13] + m2[9] * m1[14] + m2[13] * m1[15];
-      mOut[14] = m2[2] * m1[12] + m2[6] * m1[13] + m2[10] * m1[14] + m2[14] * m1[15];
-      mOut[15] = m2[3] * m1[12] + m2[7] * m1[13] + m2[11] * m1[14] + m2[15] * m1[15];
+      mOut[0] = m2[0] * m1[0] + m2[3] * m1[1] + m2[6] * m1[2];
+      mOut[1] = m2[1] * m1[0] + m2[4] * m1[1] + m2[7] * m1[2];
+      mOut[2] = m2[2] * m1[0] + m2[5] * m1[1] + m2[8] * m1[2];
+      mOut[3] = m2[0] * m1[3] + m2[3] * m1[4] + m2[6] * m1[5];
+      mOut[4] = m2[1] * m1[3] + m2[4] * m1[4] + m2[7] * m1[5];
+      mOut[5] = m2[2] * m1[3] + m2[5] * m1[4] + m2[8] * m1[5];
+      mOut[6] = m2[0] * m1[6] + m2[3] * m1[7] + m2[6] * m1[8];
+      mOut[7] = m2[1] * m1[6] + m2[4] * m1[7] + m2[7] * m1[8];
+      mOut[8] = m2[2] * m1[6] + m2[5] * m1[7] + m2[8] * m1[8];
       return mOut;
     },
-    vec4_multiply: function (m1, m2) {
+    vec2_multiply: function (m1, m2) {
       var mOut = [];
-      mOut[0] = m2[0] * m1[0] + m2[4] * m1[1] + m2[8] * m1[2] + m2[12] * m1[3];
-      mOut[1] = m2[1] * m1[0] + m2[5] * m1[1] + m2[9] * m1[2] + m2[13] * m1[3];
-      mOut[2] = m2[2] * m1[0] + m2[6] * m1[1] + m2[10] * m1[2] + m2[14] * m1[3];
-      mOut[3] = m2[3] * m1[0] + m2[7] * m1[1] + m2[11] * m1[2] + m2[15] * m1[3];
+      mOut[0] = m2[0] * m1[0] + m2[3] * m1[1] + m2[6];
+      mOut[1] = m2[1] * m1[0] + m2[4] * m1[1] + m2[7];
       return mOut;
-    },
-    vec3_multiply: function (m1, m2) {
-      var mOut = [];
-      mOut[0] = m2[0] * m1[0] + m2[4] * m1[1] + m2[8] * m1[2] + m2[12];
-      mOut[1] = m2[1] * m1[0] + m2[5] * m1[1] + m2[9] * m1[2] + m2[13];
-      mOut[2] = m2[2] * m1[0] + m2[6] * m1[1] + m2[10] * m1[2] + m2[14];
-      return mOut;
-    },
-    perspective: function (fovy, aspect, near, far) {
-      var yFac = Math.tan(fovy * M_PI / 360.0);
-      var xFac = yFac * aspect;
-      return [1.0 / xFac, 0, 0, 0, 0, 1.0 / yFac, 0, 0, 0, 0, -(far + near) / (far - near), -1, 0, 0, -(2.0 * far * near) / (far - near), 0];
-    },
-    determinant: function (m) {
-      var a0 = m[0] * m[5] - m[1] * m[4];
-      var a1 = m[0] * m[6] - m[2] * m[4];
-      var a2 = m[0] * m[7] - m[3] * m[4];
-      var a3 = m[1] * m[6] - m[2] * m[5];
-      var a4 = m[1] * m[7] - m[3] * m[5];
-      var a5 = m[2] * m[7] - m[3] * m[6];
-      var b0 = m[8] * m[13] - m[9] * m[12];
-      var b1 = m[8] * m[14] - m[10] * m[12];
-      var b2 = m[8] * m[15] - m[11] * m[12];
-      var b3 = m[9] * m[14] - m[10] * m[13];
-      var b4 = m[9] * m[15] - m[11] * m[13];
-      var b5 = m[10] * m[15] - m[11] * m[14];
-      var det = a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
-      return det;
     },
     transpose: function (m) {
-      return [m[0], m[4], m[8], m[12], m[1], m[5], m[9], m[13], m[2], m[6], m[10], m[14], m[3], m[7], m[11], m[15]];
-    },
-    inverse: function (m) {
-      var a0 = m[0] * m[5] - m[1] * m[4];
-      var a1 = m[0] * m[6] - m[2] * m[4];
-      var a2 = m[0] * m[7] - m[3] * m[4];
-      var a3 = m[1] * m[6] - m[2] * m[5];
-      var a4 = m[1] * m[7] - m[3] * m[5];
-      var a5 = m[2] * m[7] - m[3] * m[6];
-      var b0 = m[8] * m[13] - m[9] * m[12];
-      var b1 = m[8] * m[14] - m[10] * m[12];
-      var b2 = m[8] * m[15] - m[11] * m[12];
-      var b3 = m[9] * m[14] - m[10] * m[13];
-      var b4 = m[9] * m[15] - m[11] * m[13];
-      var b5 = m[10] * m[15] - m[11] * m[14];
-      var determinant = a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
-      if (determinant !== 0) {
-        var m_inv = [];
-        m_inv[0] = 0 + m[5] * b5 - m[6] * b4 + m[7] * b3;
-        m_inv[4] = 0 - m[4] * b5 + m[6] * b2 - m[7] * b1;
-        m_inv[8] = 0 + m[4] * b4 - m[5] * b2 + m[7] * b0;
-        m_inv[12] = 0 - m[4] * b3 + m[5] * b1 - m[6] * b0;
-        m_inv[1] = 0 - m[1] * b5 + m[2] * b4 - m[3] * b3;
-        m_inv[5] = 0 + m[0] * b5 - m[2] * b2 + m[3] * b1;
-        m_inv[9] = 0 - m[0] * b4 + m[1] * b2 - m[3] * b0;
-        m_inv[13] = 0 + m[0] * b3 - m[1] * b1 + m[2] * b0;
-        m_inv[2] = 0 + m[13] * a5 - m[14] * a4 + m[15] * a3;
-        m_inv[6] = 0 - m[12] * a5 + m[14] * a2 - m[15] * a1;
-        m_inv[10] = 0 + m[12] * a4 - m[13] * a2 + m[15] * a0;
-        m_inv[14] = 0 - m[12] * a3 + m[13] * a1 - m[14] * a0;
-        m_inv[3] = 0 - m[9] * a5 + m[10] * a4 - m[11] * a3;
-        m_inv[7] = 0 + m[8] * a5 - m[10] * a2 + m[11] * a1;
-        m_inv[11] = 0 - m[8] * a4 + m[9] * a2 - m[11] * a0;
-        m_inv[15] = 0 + m[8] * a3 - m[9] * a1 + m[10] * a0;
-        var inverse_det = 1.0 / determinant;
-        m_inv[0] *= inverse_det;
-        m_inv[1] *= inverse_det;
-        m_inv[2] *= inverse_det;
-        m_inv[3] *= inverse_det;
-        m_inv[4] *= inverse_det;
-        m_inv[5] *= inverse_det;
-        m_inv[6] *= inverse_det;
-        m_inv[7] *= inverse_det;
-        m_inv[8] *= inverse_det;
-        m_inv[9] *= inverse_det;
-        m_inv[10] *= inverse_det;
-        m_inv[11] *= inverse_det;
-        m_inv[12] *= inverse_det;
-        m_inv[13] *= inverse_det;
-        m_inv[14] *= inverse_det;
-        m_inv[15] *= inverse_det;
-        return m_inv;
-      }
-      return null; 
-    },
-    lookat: function(eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz) {
-      var forward = [], side = [], up = [];
-      var m = [];
-      forward[0] = centerx - eyex;
-      forward[1] = centery - eyey;
-      forward[2] = centerz - eyez;
-      up[0] = upx;
-      up[1] = upy;
-      up[2] = upz;
-      forward = vec3.normalize(forward);
-      /* Side = forward x up */
-      side = vec3.cross(forward, up);
-      var size = vec3.normalize(side);
-      /* Recompute up as: up = side x forward */
-      up = vec3.cross(side, forward);
-      m = [ side[0], up[0], -forward[0], 0, side[1], up[1], -forward[1], 0, side[2], up[2], -forward[2], 0, 0, 0, 0, 1];
-      var t = new Transform();
-      t.translate([-eyex,-eyey,-eyez]);
-      t.pushMatrix(m);
-      return t.getResult();
+      return [m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]];
     }
-  }; //mat4
+  }; //mat3
 
   // Transform library from CubicVR.js
   function Transform(mat) {
@@ -245,7 +131,9 @@
   };
 
   Transform.prototype.getIdentity = function() {
-    return [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0];
+    return [1.0, 0.0, 0.0, 
+            0.0, 1.0, 0.0, 
+            0.0, 0.0, 1.0];
   };
 
   Transform.prototype.getResult = function() {
@@ -253,12 +141,12 @@
       return this.m_stack[0];
     }
     
-    var m = mat4.identity;
+    var m = mat3.identity;
     
     if (this.valid > this.c_stack-1) { this.valid = this.c_stack-1; }
                 
     for (var i = this.valid; i < this.c_stack+1; i++) {
-      m = mat4.multiply(this.m_stack[i],m);
+      m = mat3.multiply(this.m_stack[i],m);
       this.m_cache[i] = m;
     }
       
@@ -271,7 +159,7 @@
 
   Transform.prototype.pushMatrix = function(m) {
     this.c_stack++;
-    this.m_stack[this.c_stack] = (m ? m : mat4.identity);
+    this.m_stack[this.c_stack] = (m ? m : mat3.identity);
     return this;
   };
 
@@ -299,16 +187,11 @@
     return this;
   }; //clearStack
 
-  Transform.prototype.translate = function(x, y, z) {
-    if (typeof(x) === 'object') {
-      return this.translate(x[0], x[1], x[2]);
-    }
-
+  Transform.prototype.translate = function(x, y) {
     var m = this.getIdentity();
-    m[12] = x;
-    m[13] = y;
-    m[14] = z;
-    this.m_stack[this.c_stack] = mat4.multiply(m, this.m_stack[this.c_stack]);
+    m[6] = x;
+    m[7] = y;
+    this.m_stack[this.c_stack] = mat3.multiply(m, this.m_stack[this.c_stack]);
 
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
@@ -316,57 +199,27 @@
     return this;
   }; //translate
 
-  Transform.prototype.scale = function(x, y, z) {
-    if (typeof(x) === 'object') {
-      return this.scale(x[0], x[1], x[2]);
-    }
+  Transform.prototype.scale = function(x, y) {
     var m = this.getIdentity();
     m[0] = x;
-    m[5] = y;
-    m[10] = z;
-    this.m_stack[this.c_stack] = mat4.multiply(m, this.m_stack[this.c_stack]);
+    m[4] = y;
+    this.m_stack[this.c_stack] = mat3.multiply(m, this.m_stack[this.c_stack]);
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
     }
     return this;
   }; //scale
 
-  Transform.prototype.rotate = function(ang, x, y, z) {
-    if (typeof(ang) === 'object') {
-      this.rotate(ang[0], 1, 0, 0);
-      this.rotate(ang[1], 0, 1, 0);
-      this.rotate(ang[2], 0, 0, 1);
-      return this;
-    }
+  Transform.prototype.rotate = function(ang) {
     var sAng, cAng;
-    if (x || y || z) {
-      sAng = Math.sin(-ang);
-      cAng = Math.cos(-ang);
-    }
-    if (z) {
-      var Z_ROT = this.getIdentity();
-      Z_ROT[0] = cAng * z;
-      Z_ROT[4] = sAng * z;
-      Z_ROT[1] = -sAng * z;
-      Z_ROT[5] = cAng * z;
-      this.m_stack[this.c_stack] = mat4.multiply(Z_ROT, this.m_stack[this.c_stack]);
-    }
-    if (y) {
-      var Y_ROT = this.getIdentity();
-      Y_ROT[0] = cAng * y;
-      Y_ROT[8] = -sAng * y;
-      Y_ROT[2] = sAng * y;
-      Y_ROT[10] = cAng * y;
-      this.m_stack[this.c_stack] = mat4.multiply(Y_ROT, this.m_stack[this.c_stack]);
-    }
-    if (x) {
-      var X_ROT = this.getIdentity();
-      X_ROT[5] = cAng * x;
-      X_ROT[9] = sAng * x;
-      X_ROT[6] = -sAng * x;
-      X_ROT[10] = cAng * x;
-      this.m_stack[this.c_stack] = mat4.multiply(X_ROT, this.m_stack[this.c_stack]);
-    }
+    sAng = Math.sin(-ang);
+    cAng = Math.cos(-ang);
+    var Z_ROT = this.getIdentity();
+    Z_ROT[0] = cAng;
+    Z_ROT[3] = sAng;
+    Z_ROT[1] = -sAng;
+    Z_ROT[4] = cAng;
+    this.m_stack[this.c_stack] = mat3.multiply(Z_ROT, this.m_stack[this.c_stack]);
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
     }
@@ -380,10 +233,6 @@
     this.vs             = undefined;
     this.shaderProgram  = undefined;
     this.transform      = new Transform();
-    this.pMatrix        = [2/canvas.width, 0, 0, 0,
-                           0, -2/canvas.height, 0, 0,
-                           0, 0, 1, 1,
-                          -1, 1, 0, 1];
 
     // Store getContext function for later use
     canvas.$getContext = canvas.getContext;
@@ -398,7 +247,7 @@
           case "webgl-2d":
             var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
 
-            gl2d.initShaders();
+            gl2d.initShaders(canvas.width, canvas.height);
             gl2d.initBuffers();
             gl2d.initCanvas2DAPI();
 
@@ -453,30 +302,42 @@
     "}"
   ].join("\n");
 
-  // Vertex shader source
-  var vsSource = [
-    "attribute vec3 aVertexPosition;",
-    "attribute vec2 aTextureCoord;",
+  WebGL2D.prototype.getVertexShaderSource = function getVertexShaderSource(stackDepth) {
+    stackDepth = stackDepth || 1;
+    var w = 2/width, h=-2/height;
+    var vsSource = [
+      "attribute vec3 aVertexPosition;",
+      "attribute vec2 aTextureCoord;",
 
-    // "attribute vec4 aVertexColor;",
+      "uniform mat3 uOMatrix;",
+      "uniform vec4 uColor;",
+      "uniform mat3 uTransforms[" + stackDepth + "];",
 
-    "uniform mat4 uOMatrix;",
-    "uniform mat4 uPMatrix;",
-    "uniform vec4 uColor;",
+      "varying vec4 vColor;",
+      "varying vec2 vTextureCoord;",
 
-    "varying vec4 vColor;",
-    "varying vec2 vTextureCoord;",
+      "const mat4 pMatrix = mat4("+w+",0,0,0, 0,"+h+",0,0, 0,0,1.0,1.0, -1.0,1.0,0,0);",
 
-    "void main(void) {",
-      "gl_Position = uPMatrix * uOMatrix * vec4(aVertexPosition, 1.0);",
-      // "vColor = aVertexColor;",
-      "vColor = uColor;",
-      "vTextureCoord = aTextureCoord;",
-    "}"
-  ].join("\n");
+      "mat3 crunchStack(void) {",
+        "mat3 result;",
+        "for (int i=0; i<"+stackDepth+"; ++i) {",
+          "result = result * uTransforms[i];",
+        "}",
+        "return result;",
+      "}",
+
+      "void main(void) {",
+        "vec3 position = uOMatrix * vec3(aVertexPosition.x, aVertexPosition.y, 1.0);",
+        "gl_Position = pMatrix * vec4(position, 1.0);",
+        "vColor = uColor;",
+        "vTextureCoord = aTextureCoord;",
+      "}"
+    ].join("\n");
+    return vsSource;
+  };
 
   // Initialize fragment and vertex shaders
-  WebGL2D.prototype.initShaders = function initShaders() {
+  WebGL2D.prototype.initShaders = function initShaders(width, height, transformStackDepth) {
     var gl = this.gl;
 
     var fs = this.fs = gl.createShader(gl.FRAGMENT_SHADER);
@@ -484,7 +345,7 @@
     gl.compileShader(this.fs);
 
     var vs = this.vs = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vs, vsSource);
+    gl.shaderSource(vs, this.getVertexShaderSource(width, height, transformStackDepth));
     gl.compileShader(vs);
 
     var shaderProgram = this.shaderProgram = gl.createProgram();
@@ -503,14 +364,12 @@
 
     shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
 
-    // this.shaderProgram.vertexColorAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexColor");
-    // gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
-
     shaderProgram.uOMatrix = gl.getUniformLocation(shaderProgram, 'uOMatrix');
-    shaderProgram.uPMatrix = gl.getUniformLocation(shaderProgram, 'uPMatrix');
+    //shaderProgram.uPMatrix = gl.getUniformLocation(shaderProgram, 'uPMatrix');
     shaderProgram.uColor   = gl.getUniformLocation(shaderProgram, 'uColor');
     shaderProgram.uSampler = gl.getUniformLocation(shaderProgram, 'uSampler');
     shaderProgram.useTexture = gl.getUniformLocation(shaderProgram, 'useTexture');
+    shaderProgram.uTransforms = gl.getUniformLocation(shaderProgram, 'uTransforms');
   };
 
   var rectVertexPositionBuffer;
@@ -619,15 +478,15 @@
     };
 
     gl.translate = function translate(x, y) {
-      gl2d.transform.translate([x, y, 0]);
+      gl2d.transform.translate(x, y);
     }; 
 
     gl.rotate = function rotate(a) {
-      gl2d.transform.rotate([0, 0, a]);
+      gl2d.transform.rotate(a);
     };
 
     gl.scale = function scale(x, y) {
-      gl2d.transform.scale([x, y, 0]);
+      gl2d.transform.scale(x, y);
     };
 
     gl.createImageData = function createImageData(width, height) {
@@ -658,11 +517,6 @@
     gl.transform = function transform(m11, m12, m21, m22, dx, dy) {
       var m = gl2d.transform.m_stack[gl2d.transform.c_stack];
 
-      /*
-      var m2 = [m11, m21, dx, m12, m22, dy, 0, 0, 1];
-      
-      gl2d.transform.m_stack[gl2d.transform.c_stack] = mat4.multiply(m1, m2);
-      */
       m[0] *= m11;
       m[1] *= m21;
       m[2] *= dx;
@@ -686,11 +540,11 @@
 
       transform.pushMatrix();
 
-      transform.translate(x, y, 0);
-      transform.scale(width, height, 1);
+      transform.translate(x, y);
+      transform.scale(width, height);
 
-      gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, transform.getResult());
-      gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
+      gl.uniformMatrix3fv(shaderProgram.uOMatrix, false, transform.getResult());
+      //gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
       gl.uniform4f(shaderProgram.uColor, fillStyle[0], fillStyle[1], fillStyle[2], fillStyle[3]);
       
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
@@ -706,11 +560,11 @@
 
       transform.pushMatrix();
 
-      transform.translate(x, y, 0);
-      transform.scale(width, height, 1);
+      transform.translate(x, y);
+      transform.scale(width, height);
 
-      gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, transform.getResult());
-      gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
+      gl.uniformMatrix3fv(shaderProgram.uOMatrix, false, transform.getResult());
+      //gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
       gl.uniform4f(shaderProgram.uColor, strokeStyle[0], strokeStyle[1], strokeStyle[2], strokeStyle[3]);
 
       gl.drawArrays(gl.LINE_LOOP, 0, 4);
@@ -824,17 +678,17 @@
       transform.pushMatrix();
 
       if (arguments.length === 3) {
-        transform.translate(a, b, 0);
-        transform.scale(image.width, image.height, 1);
+        transform.translate(a, b);
+        transform.scale(image.width, image.height);
       } else if (arguments.length === 5) {
-        transform.translate(a, b, 0);
-        transform.scale(c, d, 1);
+        transform.translate(a, b);
+        transform.scale(c, d);
       } else if (arguments.length === 9) {
         throw "Not yet implemented.";
       }
 
-      gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, transform.getResult());
-      gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
+      gl.uniformMatrix3fv(shaderProgram.uOMatrix, false, transform.getResult());
+      //gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
       gl.uniform1i(shaderProgram.useTexture, true);
       gl.uniform1i(shaderProgram.uSampler, 0);
 
