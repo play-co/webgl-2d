@@ -87,7 +87,7 @@
         return false;
       }
       return (Math.abs(a[0] - b[0]) < epsilon && Math.abs(a[1] - b[1]) < epsilon && Math.abs(a[2] - b[2]) < epsilon);
-    },
+    }
   }; 
 
   var mat4 = {
@@ -169,7 +169,7 @@
       var b4 = m[9] * m[15] - m[11] * m[13];
       var b5 = m[10] * m[15] - m[11] * m[14];
       var determinant = a0 * b5 - a1 * b4 + a2 * b3 + a3 * b2 - a4 * b1 + a5 * b0;
-      if (determinant != 0) {
+      if (determinant !== 0) {
         var m_inv = [];
         m_inv[0] = 0 + m[5] * b5 - m[6] * b4 + m[7] * b3;
         m_inv[4] = 0 - m[4] * b5 + m[6] * b2 - m[7] * b1;
@@ -219,11 +219,11 @@
       up[2] = upz;
       forward = vec3.normalize(forward);
       /* Side = forward x up */
-      var side = vec3.cross(forward, up);
-      size = vec3.normalize(side);
+      side = vec3.cross(forward, up);
+      var size = vec3.normalize(side);
       /* Recompute up as: up = side x forward */
       up = vec3.cross(side, forward);
-      var m = [ side[0], up[0], -forward[0], 0, side[1], up[1], -forward[1], 0, side[2], up[2], -forward[2], 0, 0, 0, 0, 1];
+      m = [ side[0], up[0], -forward[0], 0, side[1], up[1], -forward[1], 0, side[2], up[2], -forward[2], 0, 0, 0, 0, 1];
       var t = new Transform();
       t.translate([-eyex,-eyey,-eyez]);
       t.pushMatrix(m);
@@ -234,7 +234,7 @@
   // Transform library from CubicVR.js
   function Transform(mat) {
     return this.clearStack(mat);
-  };
+  }
 
   Transform.prototype.setIdentity = function() {
     this.m_stack[this.c_stack] = this.getIdentity();
@@ -255,7 +255,7 @@
     
     var m = mat4.identity;
     
-    if (this.valid > this.c_stack-1) this.valid = this.c_stack-1;
+    if (this.valid > this.c_stack-1) { this.valid = this.c_stack-1; }
                 
     for (var i = this.valid; i < this.c_stack+1; i++) {
       m = mat4.multiply(this.m_stack[i],m);
@@ -799,7 +799,7 @@
       var texture, foundImage = false;
 
       for (var i = 0; i < textureCache.length; i++) {
-        if (textureCache[i].image == image) {
+        if (textureCache[i].image === image) {
           foundImage = true;
           texture = textureCache[i]; 
           break;
@@ -830,6 +830,7 @@
         transform.translate(a, b, 0);
         transform.scale(c, d, 1);
       } else if (arguments.length === 9) {
+        throw "Not yet implemented.";
       }
 
       gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, transform.getResult());
