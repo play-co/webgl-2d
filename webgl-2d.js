@@ -776,20 +776,42 @@
     //drawImage(image, dx, dy)
     //drawImage(image, dx, dy, dw, dh)
     //drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh) 
-    gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
-      var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform;
-      var texture = gl.createTexture();
+    var textureCache = [];
 
-      gl.enableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
+    function Texture(image) {
+      this.image = image;
+      this.obj   = gl.createTexture();
+      this.index = textureCache.length;
 
-      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.bindTexture(gl.TEXTURE_2D, this.obj);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      
+
+      textureCache.push(this);
+    }
+
+    gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
+      var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform;
+
+      var texture, foundImage = false;
+
+      for (var i = 0; i < textureCache.length; i++) {
+        if (textureCache[i].image == image) {
+          foundImage = true;
+          texture = textureCache[i]; 
+          break;
+        }
+      }
+
+      if (!foundImage) {
+        texture = new Texture(image);
+      }
+
+      gl.enableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
@@ -797,13 +819,17 @@
       gl.bindBuffer(gl.ARRAY_BUFFER, texVBO);
       gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
+      gl.bindTexture(gl.TEXTURE_2D, texture.obj);
+      gl.activeTexture(gl.TEXTURE0);
+
       transform.pushMatrix();
 
-      transform.translate(a, b, 0);
-      transform.scale(image.width, image.height, 1);
-
-        
-      gl.activeTexture(gl.TEXTURE0);
+      if (arguments.length === 3) {
+        transform.translate(a, b, 0);
+        transform.scale(image.width, image.height, 1);
+      } else if (arguments.length === 5) {
+      } else if (arguments.length === 9) {
+      }
 
       gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, transform.getResult());
       gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
@@ -814,11 +840,7 @@
 
       transform.popMatrix();
 
-      if (arguments.length === 3) {
-      } else if (arguments.length === 5) {
-      } else if (arguments.length === 9) {
-      }
-
+      gl.uniform1i(shaderProgram.useTexture, false);
       gl.disableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
     };
   };
