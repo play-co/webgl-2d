@@ -582,6 +582,9 @@
     // This attribute will need to control global alpha of objects drawn.
     gl.globalAlpha    = 1.0;
 
+    var tempCanvas = document.createElement('CANVAS');
+    var tempCtx = tempCanvas.getContext('2d');
+
     // This attribute will need to set the gl.blendFunc mode
     gl.globalCompositeOperation = "source-over"; 
 
@@ -603,6 +606,21 @@
 
     gl.scale = function scale(x, y) {
       gl2d.transform.scale([x, y, 0]);
+    };
+
+    gl.createImageData = function createImageData(width, height) {
+      return tempCtx.createImageData(width, height);
+    };
+
+    gl.getImageData = function getImageData(x, y, width, height) {
+      var data = tempCtx.createImageData(width, height);
+      var buf = new ArrayBuffer(width*height*4);
+      gl.readPixels(x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, data.data);
+      return data;
+    };
+
+    gl.putImageData = function putImageData(image, x, y) {
+      //basically, drawImage
     };
 
     gl.transform = function transform(m11, m12, m21, m22, dx, dy) {
