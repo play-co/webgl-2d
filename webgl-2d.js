@@ -439,15 +439,25 @@
     "#endif",
 
     "varying vec4 vColor;",
+    "varying vec2 vTextureCoord;",
+
+    "uniform sampler2D uSampler;",
+    "uniform bool useTexture;",
 
     "void main(void) {",
-      "gl_FragColor = vColor;",
+      "if (useTexture) {",
+        "gl_FragColor = texture2D(uSampler, vTextureCoord);",
+      "} else {",
+        "gl_FragColor = vColor;",
+      "}",
     "}"
   ].join("\n");
 
   // Vertex shader source
   var vsSource = [
     "attribute vec3 aVertexPosition;",
+    "attribute vec2 aTextureCoord;",
+
     // "attribute vec4 aVertexColor;",
 
     "uniform mat4 uOMatrix;",
@@ -455,11 +465,13 @@
     "uniform vec4 uColor;",
 
     "varying vec4 vColor;",
+    "varying vec2 vTextureCoord;",
 
     "void main(void) {",
       "gl_Position = uPMatrix * uOMatrix * vec4(aVertexPosition, 1.0);",
       // "vColor = aVertexColor;",
       "vColor = uColor;",
+      "vTextureCoord = aTextureCoord;",
     "}"
   ].join("\n");
 
@@ -489,26 +501,36 @@
     shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
     gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
+    shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+
     // this.shaderProgram.vertexColorAttribute = gl.getAttribLocation(this.shaderProgram, "aVertexColor");
     // gl.enableVertexAttribArray(this.shaderProgram.vertexColorAttribute);
 
     shaderProgram.uOMatrix = gl.getUniformLocation(shaderProgram, 'uOMatrix');
     shaderProgram.uPMatrix = gl.getUniformLocation(shaderProgram, 'uPMatrix');
     shaderProgram.uColor   = gl.getUniformLocation(shaderProgram, 'uColor');
+    shaderProgram.uSampler = gl.getUniformLocation(shaderProgram, 'uSampler');
+    shaderProgram.useTexture = gl.getUniformLocation(shaderProgram, 'useTexture');
   };
 
   var rectVertexPositionBuffer;
   var rectVertexColorBuffer;
+  var texVBO;
   var rectVerts = new Float32Array([0,0,0, 0,1,0, 1,1,0, 1,0,0]);
+  var rectUVs   = new Float32Array([0,0, 0,1, 1,1, 1,0]);
 
   WebGL2D.prototype.initBuffers = function initBuffers() {
     var gl = this.gl;
 
     rectVertexPositionBuffer  = gl.createBuffer();
     rectVertexColorBuffer     = gl.createBuffer();
+    texVBO                    = gl.createBuffer();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, texVBO);
+    gl.bufferData(gl.ARRAY_BUFFER, rectUVs, gl.STATIC_DRAW);
   };
 
   // Maintains an array of all WebGL2D instances
@@ -721,6 +743,53 @@
     };
 
     gl.stroke = function stroke() {
+    };
+
+    //drawImage(image, dx, dy)
+    //drawImage(image, dx, dy, dw, dh)
+    //drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh) 
+    gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
+      image.onload = function() {
+        var shaderProgram = gl2d.shaderProgram, transform = gl2d.transform;
+        var texture = gl.createTexture();
+
+        gl.enableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
+
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, texVBO);
+        gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+        transform.pushMatrix();
+
+        transform.translate(a, b, 0);
+        transform.scale(image.width, image.height, 1);
+
+        
+        gl.activeTexture(gl.TEXTURE0);
+
+        gl.uniformMatrix4fv(shaderProgram.uOMatrix, false, transform.getResult());
+        gl.uniformMatrix4fv(shaderProgram.uPMatrix, false, gl2d.pMatrix);
+        gl.uniform1i(shaderProgram.useTexture, true);
+        gl.uniform1i(shaderProgram.uSampler, 0);
+
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+        transform.popMatrix();
+
+        if (arguments.length === 3) {
+        } else if (arguments.length === 5) {
+        } else if (arguments.length === 9) {
+        }
+
+        gl.disableVertexAttribArray(gl2d.shaderProgram.textureCoordAttribute);
+      };
     };
   };
 
