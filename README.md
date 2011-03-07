@@ -43,6 +43,13 @@ WebGL-2D is a work in progress and currently supports a very small subset of the
 * save
 * restore
 * lineWidth
+* drawImage
+* beginPath
+* closePath
+* moveTo
+* lineTo
+* rect
+* getImageData
 
 Properties added but currently not working
 
