@@ -828,6 +828,8 @@
         transform.translate(a, b, 0);
         transform.scale(image.width, image.height, 1);
       } else if (arguments.length === 5) {
+        transform.translate(a, b, 0);
+        transform.scale(c, d, 1);
       } else if (arguments.length === 9) {
       }
 
