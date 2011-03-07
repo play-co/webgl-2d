@@ -304,7 +304,7 @@
 
   WebGL2D.prototype.getVertexShaderSource = function getVertexShaderSource(stackDepth) {
     stackDepth = stackDepth || 1;
-    var w = 2/width, h=-2/height;
+    var w = 2 / this.canvas.width, h = -2 / this.canvas.height;
     var vsSource = [
       "attribute vec3 aVertexPosition;",
       "attribute vec2 aTextureCoord;",
@@ -337,7 +337,7 @@
   };
 
   // Initialize fragment and vertex shaders
-  WebGL2D.prototype.initShaders = function initShaders(width, height, transformStackDepth) {
+  WebGL2D.prototype.initShaders = function initShaders(transformStackDepth) {
     var gl = this.gl;
 
     var fs = this.fs = gl.createShader(gl.FRAGMENT_SHADER);
@@ -345,7 +345,7 @@
     gl.compileShader(this.fs);
 
     var vs = this.vs = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vs, this.getVertexShaderSource(width, height, transformStackDepth));
+    gl.shaderSource(vs, this.getVertexShaderSource(transformStackDepth));
     gl.compileShader(vs);
 
     var shaderProgram = this.shaderProgram = gl.createProgram();
