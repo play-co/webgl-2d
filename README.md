@@ -43,15 +43,17 @@ WebGL-2D is a work in progress and currently supports a very small subset of the
 * save
 * restore
 * lineWidth
-* drawImage
+* drawImage (cropping params not implemented yet)
 * beginPath
 * closePath
 * moveTo
 * lineTo
 * rect
+* createImageData
 * getImageData
+* putImageData
 
-Properties added but currently not working
+Properties stubbed but currently not working
 
 * lineCap
 * lineJoin
@@ -63,3 +65,5 @@ Properties added but currently not working
 * font
 * textAlign
 * textBaseline
+* globalAlpha
+* globalCompositeOp
