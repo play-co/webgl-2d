@@ -233,6 +233,7 @@
     this.vs             = undefined;
     this.shaderProgram  = undefined;
     this.transform      = new Transform();
+    this.shaderPool     = [];
 
     // Store getContext function for later use
     canvas.$getContext = canvas.getContext;
@@ -335,7 +336,6 @@
     return vsSource;
   };
 
-  WebGL2D.prototype.shaderPool = [];
 
   // Initialize fragment and vertex shaders
   WebGL2D.prototype.initShaders = function initShaders(transformStackDepth) {
