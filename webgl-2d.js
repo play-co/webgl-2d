@@ -363,9 +363,11 @@
   // Initialize fragment and vertex shaders
   WebGL2D.prototype.initShaders = function initShaders(transformStackDepth,sMask) {
     var gl = this.gl;
+
     transformStackDepth = transformStackDepth || 1;
     sMask = sMask || 0;
     var storedShader = this.shaderPool[transformStackDepth];
+
     if (!storedShader) { storedShader = this.shaderPool[transformStackDepth] = []; }
     storedShader = storedShader[sMask];
 
@@ -373,9 +375,7 @@
       gl.useProgram(storedShader);
       this.shaderProgram = storedShader;
       return storedShader;
-    }
-    else {
-      
+    } else {
       var fs = this.fs = gl.createShader(gl.FRAGMENT_SHADER);
       gl.shaderSource(this.fs, this.getFragmentShaderSource(sMask));
       gl.compileShader(this.fs);
@@ -513,6 +513,7 @@
     gl.globalAlpha    = 1.0;
 
     gl.fillText = function fillText() {};
+    gl.measureText = function measureText() { return 1; };
 
     var tempCanvas = document.createElement('CANVAS');
     var tempCtx = tempCanvas.getContext('2d');
@@ -687,15 +688,13 @@
     gl.stroke = function stroke() {
     };
 
-    //drawImage(image, dx, dy)
-    //drawImage(image, dx, dy, dw, dh)
-    //drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh) 
-    var textureCache = [];
+    var imageCache = [], textureCache = [];
 
     function Texture(image) {
-      this.image = image;
       this.obj   = gl.createTexture();
-      this.index = textureCache.length;
+      this.index = textureCache.push(this);
+
+      imageCache.push(image); 
 
       gl.bindTexture(gl.TEXTURE_2D, this.obj);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -706,26 +705,21 @@
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       //gl.generateMipmap(gl.TEXTURE_2D); // requires POT texture
       gl.bindTexture(gl.TEXTURE_2D, null);
-
-      textureCache.push(this);
     }
 
+    //drawImage(image, dx, dy)
+    //drawImage(image, dx, dy, dw, dh)
+    //drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh) 
     gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
       var transform = gl2d.transform;
       var shaderProgram = gl2d.initShaders(transform.c_stack + 2, shaderMask.texture);
 
-      var texture, foundImage = false;
+      var texture, cacheIndex = imageCache.indexOf(image);
 
-      for (var i = 0; i < textureCache.length; i++) {
-        if (textureCache[i].image === image) {
-          foundImage = true;
-          texture = textureCache[i]; 
-          break;
-        }
-      }
-
-      if (!foundImage) {
-        texture = new Texture(image);
+      if (cacheIndex !== -1) {
+        texture = textureCache[cacheIndex];   
+      } else {
+        texture = new Texture(image);  
       }
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
@@ -743,7 +737,9 @@
         transform.translate(a, b);
         transform.scale(c, d);
       } else if (arguments.length === 9) {
-        throw "Not yet implemented.";
+        // Not yet implemented
+        transform.translate(e, f);
+        transform.scale(g, h);
       }
 
       gl.uniform1i(shaderProgram.uSampler, 0);
