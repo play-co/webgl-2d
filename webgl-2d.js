@@ -282,40 +282,62 @@
     return new WebGL2D(canvas);
   };
 
+  
+  // Shader Pool BitMasks, i.e. sMask = (shaderMask.texture+shaderMask.stroke)
+  var shaderMask = {
+    texture: 1,
+    stroke: 2,
+    another_option: 4,
+    and_another: 8,
+    etc: 16
+  };
+
+
   // Fragment shader source
-  var fsSource = [
-    "#ifdef GL_ES",
-      "precision highp float;",
-    "#endif",
+  WebGL2D.prototype.getFragmentShaderSource = function getFragmentShaderSource(sMask) {
+    var fsSource = [
+      "#ifdef GL_ES",
+        "precision highp float;",
+      "#endif",
 
-    "varying vec4 vColor;",
-    "varying vec2 vTextureCoord;",
+      "#define hasTexture "+((sMask&shaderMask.texture)?"1":"0"),
 
-    "uniform sampler2D uSampler;",
-    "uniform bool useTexture;",
+      "varying vec4 vColor;",
+      
+      "#if hasTexture",
+        "varying vec2 vTextureCoord;",
+        "uniform sampler2D uSampler;",
+      "#endif",
+      
+      "void main(void) {",
+        "#if hasTexture",
+          "gl_FragColor = texture2D(uSampler, vTextureCoord);",
+        "#else",
+          "gl_FragColor = vColor;",
+        "#endif",
+      "}"
+    ].join("\n");
 
-    "void main(void) {",
-      "if (useTexture) {",
-        "gl_FragColor = texture2D(uSampler, vTextureCoord);",
-      "} else {",
-        "gl_FragColor = vColor;",
-      "}",
-    "}"
-  ].join("\n");
+    return fsSource;
+  }
 
-  WebGL2D.prototype.getVertexShaderSource = function getVertexShaderSource(stackDepth) {
+
+  WebGL2D.prototype.getVertexShaderSource = function getVertexShaderSource(stackDepth,sMask) {
     stackDepth = stackDepth || 1;
     var w = 2 / this.canvas.width, h = -2 / this.canvas.height;
     var vsSource = [
+      "#define hasTexture "+((sMask&shaderMask.texture)?"1":"0"),
       "attribute vec4 aVertexPosition;",
-      "attribute vec2 aTextureCoord;",
+
+      "#if hasTexture",
+      "varying vec2 vTextureCoord;",
+      "#endif",
 
       "uniform vec4 uColor;",
       "uniform mat3 uTransforms[" + stackDepth + "];",
 
       "varying vec4 vColor;",
-      "varying vec2 vTextureCoord;",
-
+      
       "const mat4 pMatrix = mat4("+w+",0,0,0, 0,"+h+",0,0, 0,0,1.0,1.0, -1.0,1.0,0,0);",
 
       "mat3 crunchStack(void) {",
@@ -330,7 +352,9 @@
         "vec3 position = crunchStack() * vec3(aVertexPosition.x, aVertexPosition.y, 1.0);",
         "gl_Position = pMatrix * vec4(position, 1.0);",
         "vColor = uColor;",
-        "vTextureCoord = aVertexPosition.zw;",
+        "#if hasTexture",
+          "vTextureCoord = aVertexPosition.zw;",
+        "#endif",
       "}"
     ].join("\n");
     return vsSource;
@@ -338,10 +362,13 @@
 
 
   // Initialize fragment and vertex shaders
-  WebGL2D.prototype.initShaders = function initShaders(transformStackDepth) {
+  WebGL2D.prototype.initShaders = function initShaders(transformStackDepth,sMask) {
     var gl = this.gl;
     transformStackDepth = transformStackDepth || 1;
+    sMask = sMask || 0;
     var storedShader = this.shaderPool[transformStackDepth];
+    if (!storedShader) storedShader = this.shaderPool[transformStackDepth] = [];
+    storedShader = storedShader[sMask];
 
     if (storedShader) {
       gl.useProgram(storedShader);
@@ -349,14 +376,23 @@
       return storedShader;
     }
     else {
-
+      
       var fs = this.fs = gl.createShader(gl.FRAGMENT_SHADER);
-      gl.shaderSource(this.fs, fsSource);
+      gl.shaderSource(this.fs, this.getFragmentShaderSource(sMask));
       gl.compileShader(this.fs);
 
+      if (!gl.getShaderParameter(this.fs, gl.COMPILE_STATUS)) {
+        throw "fragment shader error: "+gl.getShaderInfoLog(this.fs);
+      }
+
       var vs = this.vs = gl.createShader(gl.VERTEX_SHADER);
-      gl.shaderSource(vs, this.getVertexShaderSource(transformStackDepth));
-      gl.compileShader(vs);
+      gl.shaderSource(this.vs, this.getVertexShaderSource(transformStackDepth,sMask));
+      gl.compileShader(this.vs);
+
+      if (!gl.getShaderParameter(this.vs, gl.COMPILE_STATUS)) {
+        throw "vertex shader error: "+gl.getShaderInfoLog(this.vs);
+      }
+
 
       var shaderProgram = this.shaderProgram = gl.createProgram();
       shaderProgram.stackDepth = transformStackDepth;
@@ -365,7 +401,7 @@
       gl.linkProgram(shaderProgram);
 
       if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        throw "Could not initialise shaders.";
+        throw "Could not initialise shaders.";        
       }
 
       gl.useProgram(shaderProgram);
@@ -373,16 +409,14 @@
       shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
       gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
-      shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-
       shaderProgram.uColor   = gl.getUniformLocation(shaderProgram, 'uColor');
       shaderProgram.uSampler = gl.getUniformLocation(shaderProgram, 'uSampler');
-      shaderProgram.useTexture = gl.getUniformLocation(shaderProgram, 'useTexture');
+
       shaderProgram.uTransforms = [];
       for (var i=0; i<transformStackDepth; ++i) {
         shaderProgram.uTransforms[i] = gl.getUniformLocation(shaderProgram, 'uTransforms[' + i + ']');
       } //for
-      this.shaderPool[transformStackDepth] = shaderProgram;
+      this.shaderPool[transformStackDepth][sMask] = shaderProgram;
       return shaderProgram;
     } //if
   };
@@ -559,7 +593,7 @@
 
     gl.fillRect = function fillRect(x, y, width, height) {
       var transform = gl2d.transform;
-      var shaderProgram = gl2d.initShaders(transform.c_stack+2);
+      var shaderProgram = gl2d.initShaders(transform.c_stack+2,0);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
@@ -580,7 +614,7 @@
 
     gl.strokeRect = function strokeRect(x, y, width, height) {
       var transform = gl2d.transform;
-      var shaderProgram = gl2d.initShaders(transform.c_stack + 2);
+      var shaderProgram = gl2d.initShaders(transform.c_stack + 2,0);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
@@ -679,7 +713,7 @@
 
     gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
       var transform = gl2d.transform;
-      var shaderProgram = gl2d.initShaders(transform.c_stack + 2);
+      var shaderProgram = gl2d.initShaders(transform.c_stack + 2, shaderMask.texture);
 
       var texture, foundImage = false;
 
@@ -713,7 +747,6 @@
         //throw "Not yet implemented.";
       }
 
-      gl.uniform1i(shaderProgram.useTexture, true);
       gl.uniform1i(shaderProgram.uSampler, 0);
 
       sendTransformStack(shaderProgram, transform);
