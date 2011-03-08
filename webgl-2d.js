@@ -319,8 +319,7 @@
     ].join("\n");
 
     return fsSource;
-  }
-
+  };
 
   WebGL2D.prototype.getVertexShaderSource = function getVertexShaderSource(stackDepth,sMask) {
     stackDepth = stackDepth || 1;
@@ -367,7 +366,7 @@
     transformStackDepth = transformStackDepth || 1;
     sMask = sMask || 0;
     var storedShader = this.shaderPool[transformStackDepth];
-    if (!storedShader) storedShader = this.shaderPool[transformStackDepth] = [];
+    if (!storedShader) { storedShader = this.shaderPool[transformStackDepth] = []; }
     storedShader = storedShader[sMask];
 
     if (storedShader) {
@@ -669,17 +668,17 @@
         subPaths[subPaths.length -1].verts.push([x, y]);
       } else {
         // Create a new subpath if none currently exist
-        moveTo(x, y);
+        gl.moveTo(x, y);
       }
     };
 
     // Adds a closed rect subpath and creates a new subpath
     gl.rect = function rect(x, y, w, h) {
-      moveTo(x, y);
-      lineTo(x + w, y);
-      lineTo(x + w, y + h);
-      lineTo(x, y + h);
-      closePath();
+      gl.moveTo(x, y);
+      gl.lineTo(x + w, y);
+      gl.lineTo(x + w, y + h);
+      gl.lineTo(x, y + h);
+      gl.closePath();
     };
 
     gl.fill = function fill() {
@@ -744,7 +743,7 @@
         transform.translate(a, b);
         transform.scale(c, d);
       } else if (arguments.length === 9) {
-        //throw "Not yet implemented.";
+        throw "Not yet implemented.";
       }
 
       gl.uniform1i(shaderProgram.uSampler, 0);
@@ -753,8 +752,6 @@
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
       transform.popMatrix();
-
-      gl.uniform1i(shaderProgram.useTexture, false);
     };
   };
 
