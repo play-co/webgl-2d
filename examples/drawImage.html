@@ -12,8 +12,6 @@
       var frameCount = 0;
       var img = new Image();
       img.src = "images/spin0000.png";
-      var img2 = new Image();
-      img2.src = "images/spin0015.png";
 
       function init() {
         cvs2D = document.getElementById("canvas2D");
@@ -27,62 +25,22 @@
         ctx2D = cvs2D.getContext("2d");
         ctxGL = cvsGL.getContext("webgl-2d");
 
-        draw(ctx2D);
-        draw(ctxGL);
-
-        // Enable animation
-        //setInterval(function() { frameCount++; draw(ctxGL); draw(ctx2D); }, 1000/30);
+        img.onload = function() {
+          draw(ctx2D);
+          draw(ctxGL);
+        };
       }
 
       function draw(ctx) {
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = "rgba(255, 50, 255, 0.5)";
-        ctx.fillStyle = "rgb(50, 0, 50)";
-        ctx.fillRect(0, 0, width, height);
-
-        ctx.save();
-          ctx.translate(width/2, height/2);
-          ctx.rotate(frameCount/100);
-          ctx.save();
-            ctx.fillStyle = "rgba(50, 255, 255, 0.1)";
-            for (var i = 0; i < 50; i++) {
-              ctx.scale(2,2);
-              ctx.fillRect(0, 0, 50, 50);
-              ctx.scale(.5, .5);
-              ctx.rotate(-2*Math.PI/50);
-            }
-          ctx.restore();
-        ctx.translate(-150, -150);
-        ctx.strokeRect(0, 0, 300, 300);
-        ctx.restore();
-
-        /*
-        ctx.strokeStyle = "rgba(50, 255, 255, 0.5)";
-        ctx.beginPath();
-          ctx.lineTo(0, 0);
-          ctx.lineTo(100, 100);
-          ctx.lineTo(100, 0);
-          ctx.lineTo(0, 0);
-
-          ctx.moveTo(width, height);
-          ctx.lineTo(width - 100, height - 100);
-          ctx.lineTo(width - 100, height);
-          ctx.closePath();
-
-          ctx.moveTo(260, 300);
-          ctx.lineTo(300, 300);
-          ctx.lineTo(350, 100);
-          ctx.stroke();
-        ctx.closePath();
-
-        ctx.beginPath();
-          ctx.stroke();
-        ctx.closePath();
-        */
-
-        ctx.drawImage(img, 10, 10);
-        ctx.drawImage(img2, 40, 10, 50, 50);
-        ctx.strokeRect(0, 0, 300, 300);
+        for (var col = 0; col < width/img.width; col++) {
+          ctx.drawImage(img, col * img.width, 0);
+        }
+        for (var row = 1; row < height/img.height; row++) {
+          for (var col = 0; col < width/img.width; col++) {
+            var scale = row + col;
+            ctx.drawImage(img, col * img.width + scale/2, row * img.height + scale/2, img.width - scale, img.height - scale);
+          }
+        }
       }
     </script>
 
@@ -96,6 +54,7 @@
   
   <body>
     <h1>Example: WebGL-2D Comparison</h1>
+    <h2>drawImage</h2>
     <div style="float: left; margin-right: 10px;">
       <h2>WebGL-2D</h2> 
       <canvas id="canvasGL" width="350" height="350" style="border: 1px solid black;"></canvas>

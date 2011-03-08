@@ -17,40 +17,28 @@
 
         width = cvs2D.width, height = cvs2D.height;
 
-        WebGL2D.enable(cvsGL);
+        WebGL2D.enable(cvsGL); // adds new context "webgl-2d" to cvs
 
+        // Easily switch between regular canvas 2d context and webgl-2d
         ctx2D = cvs2D.getContext("2d");
         ctxGL = cvsGL.getContext("webgl-2d");
 
+        draw(ctx2D);
         draw(ctxGL);
-        var imgData = ctxGL.getImageData(0, 0, width, height);
-        ctx2D.putImageData(imgData, 0, 0);
 
-        cvs2D = document.getElementById("canvas2D2");
-        cvsGL = document.getElementById("canvasGL2");
-
-        width = cvs2D.width, height = cvs2D.height;
-
-        WebGL2D.enable(cvsGL);
-
-        ctx2D = cvs2D.getContext("2d");
-        ctxGL = cvsGL.getContext("webgl-2d");
-
-        draw(ctx2D, "rgb(0, 90, 0)", "rgba(255, 255, 50, 0.1)");
-        var imgData = ctx2D.getImageData(0, 0, width, height);
-        ctxGL.putImageData(imgData, 0, 0);
+        // Enable animation
+        //setInterval(function() { frameCount++; draw(ctxGL); draw(ctx2D); }, 1000/30);
       }
 
-      function draw(ctx, color1, color2) {
-        ctx.fillStyle = color1 || "rgb(50, 0, 50)";
+      function draw(ctx) {
+        ctx.fillStyle = "rgb(50, 0, 50)";
         ctx.fillRect(0, 0, width, height);
 
         ctx.save();
           ctx.translate(width/2, height/2);
           ctx.rotate(frameCount/100);
           ctx.save();
-            ctx.scale(0.6, 0.6);
-            ctx.fillStyle = color2 || "rgba(50, 255, 255, 0.1)";
+            ctx.fillStyle = "rgba(50, 255, 255, 0.1)";
             for (var i = 0; i < 50; i++) {
               ctx.scale(2,2);
               ctx.fillRect(0, 0, 50, 50);
@@ -58,10 +46,6 @@
               ctx.rotate(-2*Math.PI/50);
             }
           ctx.restore();
-        for (var rr=1; rr<128; rr*=1.3) {
-          ctx.rotate(0.4);
-          ctx.strokeRect(-rr, -rr, 2*rr, 2*rr);
-        } //for
         ctx.restore();
       }
     </script>
@@ -76,18 +60,14 @@
   
   <body>
     <h1>Example: WebGL-2D Comparison</h1>
-    <h2>getImageData and putImageData</h2>
+    <h2>fillRect</h2>
     <div style="float: left; margin-right: 10px;">
       <h2>WebGL-2D</h2> 
-      <canvas id="canvasGL" width="170" height="170" style="border: 1px solid black;"></canvas>
-      <br />
-      <canvas id="canvasGL2" width="170" height="170" style="border: 1px solid black;"></canvas>
+      <canvas id="canvasGL" width="350" height="350" style="border: 1px solid black;"></canvas>
     </div>
     <div style="float: left;">
       <h2>Canvas2D</h2>
-      <canvas id="canvas2D" width="170" height="170" style="border: 1px solid black;"></canvas>
-      <br />
-      <canvas id="canvas2D2" width="170" height="170" style="border: 1px solid black;"></canvas>
+      <canvas id="canvas2D" width="350" height="350" style="border: 1px solid black;"></canvas>
     </div>
   </body>
 </html>
