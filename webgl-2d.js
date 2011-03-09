@@ -650,7 +650,7 @@
     
     gl.measureText = function measureText() { return 1; };
 
-    var tempCanvas = document.createElement('CANVAS');
+    var tempCanvas = document.createElement('canvas');
     var tempCtx = tempCanvas.getContext('2d');
 
     gl.save = function save() {
