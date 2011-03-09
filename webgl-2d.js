@@ -516,11 +516,15 @@
     gl.shadowColor    = "rgba(0, 0, 0, 0)";
     gl.font           = "10px sans-serif";
     gl.textAlign      = "start";
+    gl.textBaseline   = "alphabetic";
 
     // This attribute will need to control global alpha of objects drawn.
     gl.globalAlpha    = 1.0;
 
     gl.fillText = function fillText() {};
+    
+    gl.strokeText = function strokeText() {};
+    
     gl.measureText = function measureText() { return 1; };
 
     var tempCanvas = document.createElement('CANVAS');
@@ -654,6 +658,7 @@
       transform.popMatrix();
     };
 
+    gl.clearRect = function clearRect() {};
 
     var subPaths = [];
 
@@ -694,6 +699,12 @@
       }
     };
 
+    gl.quadraticCurveTo = function quadraticCurveTo() {};
+
+    gl.bezierCurveTo = function bezierCurveTo() {};
+
+    gl.arcTo = function arcTo() {};
+
     // Adds a closed rect subpath and creates a new subpath
     gl.rect = function rect(x, y, w, h) {
       gl.moveTo(x, y);
@@ -705,11 +716,17 @@
 
     gl.arc = function arc() {};
 
-    gl.fill = function fill() {
-    };
+    gl.fill = function fill() {};
 
-    gl.stroke = function stroke() {
-    };
+    gl.stroke = function stroke() {};
+
+    gl.clip = function clip() {};
+
+    gl.isPointInPath = function isPointInPath() {};
+
+    gl.drawFocusRing = function drawFocusRing() {};
+
+    
 
     var imageCache = [], textureCache = [];
 
