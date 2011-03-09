@@ -162,13 +162,16 @@ function _addTest(test)
 
       // Force getContext('2d') to use the 'webgl-2d' context,
       // since some tests get their own context vs. ctx.
-      canvas.getContext = function(t) {
-        if (t === '2d') {
-          return this.getContext('webgl-2d');
-        } else {
-          return this.getContext(t);
-        }
-      };
+      canvas.getContext = (function() {
+        var oldGetContext = canvas.getContext;
+        return function(t) {
+          if (t === '2d') {
+            return this.getContext('webgl-2d');
+          } else {
+            return oldGetContext.call(this, t);
+          }
+        };
+      })();
 
 			test(canvas, ctx);
 		}
