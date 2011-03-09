@@ -466,27 +466,27 @@
       return glColor;
     }
 
+    function colorVecToString(vec4) {
+      return "rgba(" + (vec4[0] * 255) + ", " + (vec4[1] * 255) + ", " + (vec4[2] * 255) + ", " + vec4[3] + ")";
+    }
+
     // WebGL requires colors as a vector while Canvas2D sets colors as an rgba string
     // These getters and setters store the original rgba string as well as convert to a vector
     var fillStyle  = [0, 0, 0, 1]; // default black
-    var fillString = "rgba(0, 0, 0, 1.0)";
 
     Object.defineProperty(gl, "fillStyle", {
-      get: function() { return fillString; },
+      get: function() { return colorVecToString(fillStyle); },
       set: function(value) {
         fillStyle   = colorStringToVec4(value); 
-        fillString  = value;
       }
     });
 
     var strokeStyle   = [0, 0, 0, 1]; // default black
-    var strokeString  = "rgba(0, 0, 0, 1.0)";
 
     Object.defineProperty(gl, "strokeStyle", {
-      get: function() { return strokeString; },
+      get: function() { return colorVecToString(strokeStyle); },
       set: function(value) {
         strokeStyle   = colorStringToVec4(value); 
-        strokeString  = value;
       }
     });
 
