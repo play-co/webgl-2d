@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html class="minimal">
+<title>Canvas test: size.attributes.parse.exp</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<link rel="prev" href="minimal.size.attributes.parse.hex.html" title="size.attributes.parse.hex">
+<link rel="next" href="minimal.size.attributes.parse.decimal.html" title="size.attributes.parse.decimal">
+<body>
+<p id="passtext">Pass</p>
+<p id="failtext">Fail</p>
+<!-- TODO: handle "script did not run" case -->
+<p class="output">These images should be identical:</p>
+<canvas id="c" class="output" width="100e1" height="100e1"><p class="fallback">FAIL (fallback content)</p></canvas>
+<p class="output expectedtext">Expected output:<p><img src="size.attributes.parse.exp.png" class="output expected" id="expected" alt="">
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+_assertSame(canvas.width, 100, "canvas.width", "100");
+_assertSame(canvas.height, 100, "canvas.height", "100");
+_assertEqual(window.getComputedStyle(canvas, null).getPropertyValue("width"), "100px", "window.getComputedStyle(canvas, null).getPropertyValue(\"width\")", "\"100px\"");
+
+
+});
+</script>
+

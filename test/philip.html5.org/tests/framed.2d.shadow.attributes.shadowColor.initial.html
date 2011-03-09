@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<title>Canvas test: 2d.shadow.attributes.shadowColor.initial</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="2d.shadow.attributes.shadowColor.initial.html" target="_parent">2d.&#8203;shadow.&#8203;attributes.&#8203;shadowColor.&#8203;initial</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+_assertSame(ctx.shadowColor, 'rgba(0, 0, 0, 0.0)', "ctx.shadowColor", "'rgba(0, 0, 0, 0.0)'");
+
+
+});
+</script>
+

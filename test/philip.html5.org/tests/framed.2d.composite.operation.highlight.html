@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<title>Canvas test: 2d.composite.operation.highlight</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="2d.composite.operation.highlight.html" target="_parent">2d.&#8203;composite.&#8203;operation.&#8203;highlight</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+ctx.globalCompositeOperation = 'xor';
+ctx.globalCompositeOperation = 'highlight';
+_assertEqual(ctx.globalCompositeOperation, 'xor', "ctx.globalCompositeOperation", "'xor'");
+
+
+});
+</script>
+

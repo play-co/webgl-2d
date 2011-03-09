@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<title>Canvas test: toDataURL.zerosize</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="toDataURL.zerosize.html" target="_parent">toDataURL.&#8203;zerosize</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="0" height="0"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+var data = canvas.toDataURL();
+_assertSame(data, 'data:,', "data", "'data:,'");
+
+
+});
+</script>
+
