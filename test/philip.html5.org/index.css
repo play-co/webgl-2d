@@ -1,0 +1,55 @@
+body {
+	font-size: small;
+	font-family: sans-serif;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+h3 {
+	display: inline;
+	font-size: medium;
+}
+
+h3 + p {
+	display: inline;
+	margin-left: 0.5em;
+}
+
+li {
+	list-style-type: none;
+}
+
+ul {
+	padding-left: 2em;
+	margin-left: 0;
+}
+
+li > a {
+	display: none;
+}
+
+.expand + ul li > a {
+	display: inline;
+}
+
+.testlist p a:before {
+	content: "\2013  "
+}
+
+.expand > a:before {
+	content: "\2013  un";
+}
+
+.expand + * p a {
+	display: none;
+}
+
+.testlist a {
+	~display: inline; /* for IE7 */
+}

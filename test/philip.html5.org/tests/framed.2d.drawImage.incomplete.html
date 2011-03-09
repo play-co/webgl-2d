@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<title>Canvas test: 2d.drawImage.incomplete</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="2d.drawImage.incomplete.html" target="_parent">2d.&#8203;drawImage.&#8203;incomplete</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+<p class="output expectedtext">Expected output:<p><img src="green-100x50.png" class="output expected" id="expected" alt="">
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+ctx.fillStyle = '#0f0';
+ctx.fillRect(0, 0, 100, 50);
+var img = new Image();
+_assertSame(img.complete, false, "img.complete", "false");
+ctx.drawImage(img, 0, 0);
+
+
+});
+</script>
+

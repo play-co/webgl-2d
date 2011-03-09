@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html class="minimal">
+<title>Canvas test: size.attributes.removed</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<link rel="prev" href="minimal.size.attributes.reflect.setcontent.html" title="size.attributes.reflect.setcontent">
+<link rel="next" href="minimal.size.attributes.parse.zero.html" title="size.attributes.parse.zero">
+<body>
+<p id="passtext">Pass</p>
+<p id="failtext">Fail</p>
+<!-- TODO: handle "script did not run" case -->
+<p class="output">These images should be identical:</p>
+<canvas id="c" class="output" width="120" height="60"><p class="fallback">FAIL (fallback content)</p></canvas>
+<p class="output expectedtext">Expected output:<p><img src="size.attributes.removed.png" class="output expected" id="expected" alt="">
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+_assertSame(canvas.width, 120, "canvas.width", "120");
+canvas.removeAttribute('width');
+_assertSame(canvas.width, 300, "canvas.width", "300");
+
+
+});
+</script>
+

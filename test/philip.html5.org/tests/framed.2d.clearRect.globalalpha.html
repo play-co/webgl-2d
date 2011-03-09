@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<title>Canvas test: 2d.clearRect.globalalpha</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="2d.clearRect.globalalpha.html" target="_parent">2d.&#8203;clearRect.&#8203;globalalpha</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+<p class="output expectedtext">Expected output:<p><img src="clear-100x50.png" class="output expected" id="expected" alt="">
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+ctx.fillStyle = '#f00';
+ctx.fillRect(0, 0, 100, 50);
+ctx.globalAlpha = 0.1;
+ctx.clearRect(0, 0, 100, 50);
+_assertPixel(canvas, 50,25, 0,0,0,0, "50,25", "0,0,0,0");
+
+
+});
+</script>
+

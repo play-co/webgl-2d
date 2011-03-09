@@ -1,0 +1,40 @@
+body {
+	font-family: sans-serif;
+	font-size: small;
+}
+
+.pass {
+	background: #8f8;
+}
+
+.fail {
+	background: #f88;
+}
+
+table {
+	table-layout: fixed;
+	width: 100%;
+}
+
+table #col1 {
+	width: 28em;
+}
+
+td.r:hover {
+	border: 3px solid black;
+}
+
+ul.d {
+	display: none;
+}
+
+td:hover ul.d {
+	display: inline;
+	position: absolute;
+	background: #ff8;
+	max-width: 20%;
+	margin: 0 0 0 2em;
+	padding: 0.5em;
+	padding-left: 1.5em;
+}
+

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html class="minimal">
+<title>Canvas test: 2d.state.saverestore.stack</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<link rel="prev" href="minimal.2d.state.saverestore.bitmap.html" title="2d.state.saverestore.bitmap">
+<link rel="next" href="minimal.2d.state.saverestore.stackdepth.html" title="2d.state.saverestore.stackdepth">
+<body>
+<p id="passtext">Pass</p>
+<p id="failtext">Fail</p>
+<!-- TODO: handle "script did not run" case -->
+<p class="output">These images should be identical:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+ctx.lineWidth = 1;
+ctx.save();
+ctx.lineWidth = 2;
+ctx.save();
+ctx.lineWidth = 3;
+_assertEqual(ctx.lineWidth, 3, "ctx.lineWidth", "3");
+ctx.restore();
+_assertEqual(ctx.lineWidth, 2, "ctx.lineWidth", "2");
+ctx.restore();
+_assertEqual(ctx.lineWidth, 1, "ctx.lineWidth", "1");
+
+
+});
+</script>
+

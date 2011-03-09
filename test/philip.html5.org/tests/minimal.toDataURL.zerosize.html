@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html class="minimal">
+<title>Canvas test: toDataURL.zerosize</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<link rel="prev" href="minimal.toDataURL.nocontext.html" title="toDataURL.nocontext">
+<link rel="next" href="minimal.toDataURL.png.primarycolours.html" title="toDataURL.png.primarycolours">
+<body>
+<p id="passtext">Pass</p>
+<p id="failtext">Fail</p>
+<!-- TODO: handle "script did not run" case -->
+<p class="output">These images should be identical:</p>
+<canvas id="c" class="output" width="0" height="0"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+var data = canvas.toDataURL();
+_assertSame(data, 'data:,', "data", "'data:,'");
+
+
+});
+</script>
+

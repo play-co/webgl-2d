@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<title>Canvas test: 2d.imageData.object.properties</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="2d.imageData.object.properties.html" target="_parent">2d.&#8203;imageData.&#8203;object.&#8203;properties</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+var imgdata = ctx.getImageData(0, 0, 10, 10);
+_assertEqual(typeof(imgdata.width), 'number', "typeof(imgdata.width)", "'number'");
+_assertEqual(typeof(imgdata.height), 'number', "typeof(imgdata.height)", "'number'");
+_assertEqual(typeof(imgdata.data), 'object', "typeof(imgdata.data)", "'object'");
+
+
+});
+</script>
+

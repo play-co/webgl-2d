@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html class="minimal">
+<title>Canvas test: size.attributes.parse.empty</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<link rel="prev" href="minimal.size.attributes.parse.zero.html" title="size.attributes.parse.zero">
+<link rel="next" href="minimal.size.attributes.parse.onlyspace.html" title="size.attributes.parse.onlyspace">
+<body>
+<p id="passtext">Pass</p>
+<p id="failtext">Fail</p>
+<!-- TODO: handle "script did not run" case -->
+<p class="output">These images should be identical:</p>
+<canvas id="c" class="output" width="" height=""><p class="fallback">FAIL (fallback content)</p></canvas>
+<p class="output expectedtext">Expected output:<p><img src="size.attributes.parse.empty.png" class="output expected" id="expected" alt="">
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+_assertSame(canvas.width, 300, "canvas.width", "300");
+_assertSame(canvas.height, 150, "canvas.height", "150");
+
+
+});
+</script>
+

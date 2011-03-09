@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<title>Canvas test: context.unrecognised.badname</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="context.unrecognised.badname.html" target="_parent">context.&#8203;unrecognised.&#8203;badname</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+_assertSame(canvas.getContext('This is not an implemented context in any real browser'), null, "canvas.getContext('This is not an implemented context in any real browser')", "null");
+
+
+});
+</script>
+

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<title>Canvas test: type.delete</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="type.delete.html" target="_parent">type.&#8203;delete</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+delete window.HTMLCanvasElement;
+_assert(window.HTMLCanvasElement, "window.HTMLCanvasElement");
+
+
+});
+</script>
+

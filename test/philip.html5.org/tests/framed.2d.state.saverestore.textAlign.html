@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<title>Canvas test: 2d.state.saverestore.textAlign</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="2d.state.saverestore.textAlign.html" target="_parent">2d.&#8203;state.&#8203;saverestore.&#8203;textAlign</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+// Test that restore() undoes any modifications
+var old = ctx.textAlign;
+ctx.save();
+ctx.textAlign = "center";
+ctx.restore();
+_assertSame(ctx.textAlign, old, "ctx.textAlign", "old");
+
+// Also test that save() doesn't modify the values
+ctx.textAlign = "center";
+old = ctx.textAlign;
+    // we're not interested in failures caused by get(set(x)) != x (e.g.
+    // from rounding), so compare against 'old' instead of against "center"
+ctx.save();
+_assertSame(ctx.textAlign, old, "ctx.textAlign", "old");
+ctx.restore();
+
+
+});
+</script>
+

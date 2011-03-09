@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html class="minimal">
+<title>Canvas test: 2d.fillStyle.parse.system</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<link rel="prev" href="minimal.2d.fillStyle.parse.invalid.name-3.html" title="2d.fillStyle.parse.invalid.name-3">
+<link rel="next" href="minimal.2d.fillStyle.parse.current.basic.html" title="2d.fillStyle.parse.current.basic">
+<body>
+<p id="passtext">Pass</p>
+<p id="failtext">Fail</p>
+<!-- TODO: handle "script did not run" case -->
+<p class="output">These images should be identical:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+
+ctx.fillStyle = '#f00';
+ctx.fillStyle = 'ThreeDDarkShadow';
+_assertMatch(ctx.fillStyle, /^#(?!(FF0000|ff0000|f00)$)/, "ctx.fillStyle", "/^#(?!(FF0000|ff0000|f00)$)/"); // test that it's not red
+
+
+});
+</script>
+

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html class="minimal">
+<title>Canvas test: 2d.gradient.object.return</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<link rel="prev" href="minimal.2d.strokeStyle.default.html" title="2d.strokeStyle.default">
+<link rel="next" href="minimal.2d.gradient.interpolate.solid.html" title="2d.gradient.interpolate.solid">
+<body>
+<p id="passtext">Pass</p>
+<p id="failtext">Fail</p>
+<!-- TODO: handle "script did not run" case -->
+<p class="output">These images should be identical:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+window.CanvasGradient.prototype.thisImplementsCanvasGradient = true;
+
+var g1 = ctx.createLinearGradient(0, 0, 100, 0);
+_assertDifferent(g1.addColorStop, undefined, "g1.addColorStop", "undefined");
+_assertSame(g1.thisImplementsCanvasGradient, true, "g1.thisImplementsCanvasGradient", "true");
+
+var g2 = ctx.createRadialGradient(0, 0, 10, 0, 0, 20);
+_assertDifferent(g2.addColorStop, undefined, "g2.addColorStop", "undefined");
+_assertSame(g2.thisImplementsCanvasGradient, true, "g2.thisImplementsCanvasGradient", "true");
+
+
+});
+</script>
+
