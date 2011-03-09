@@ -457,11 +457,29 @@
     var gl2d = this,
         gl   = this.gl;
 
+    var reRGBAColor = /^rgb(a)?\(\s*([\d]+)(%)?,\s*([\d]+)(%)?,\s*([\d]+)(%)?,?\s*([\d\.]+)?\s*\)$/;
+    var reHex6Color = /^#([0-9A-Fa-f]{6})$/;
+    var reHex3Color = /^#([0-9A-Fa-f])([0-9A-Fa-f])([0-9A-Fa-f])$/;
+
     // Converts rgb(a) color string to gl color vector
     function colorStringToVec4(value) {
-      var vec4 = value.replace(/[^\d.,]/g, "").split(",");
-      vec4[0] /= 255; vec4[1] /= 255;
-      vec4[2] /= 255; vec4[3] = parseFloat(vec4[3] || 1);
+      var vec4 = [], match;
+
+      if ((match = reRGBAColor.exec(value))) {
+        for (var i = 2; i < 8; i+=2) {
+          var channel = match[i];
+          vec4.push(match[i+1] ? channel / 100 : channel / 255); 
+        }
+        vec4.push(parseFloat(match[1] && match[8] !== undefined ? match[8] : 1.0));
+      } else if ((match = reHex6Color.exec(value))) {
+        var colorInt = parseInt(match[1], 16);
+        vec4 = [((colorInt & 0xFF0000) >> 16) / 255, ((colorInt & 0x00FF00) >> 8) / 255, (colorInt & 0x0000FF) / 255, 1.0];
+      } else if ((match = reHex3Color.exec(value))) {
+        var hexString = [match[1], match[1], match[2], match[2], match[3], match[3]].join("");
+        var colorInt = parseInt(hexString, 16);
+        vec4 = [((colorInt & 0xFF0000) >> 16) / 255, ((colorInt & 0x00FF00) >> 8) / 255, (colorInt & 0x0000FF) / 255, 1.0];
+      } else {
+      }
 
       return vec4;
     }
