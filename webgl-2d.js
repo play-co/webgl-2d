@@ -237,7 +237,7 @@
     this.shaderPool     = [];
 
     // Save a reference to the WebGL2D instance on the canvas object
-    canvas.gl2d         = this
+    canvas.gl2d         = this;
 
     // Store getContext function for later use
     canvas.$getContext  = canvas.getContext;
@@ -246,7 +246,7 @@
     canvas.getContext = (function(gl2d) { 
       return function(context) {
         if (gl2d.options.force || context === "webgl-2d") {
-          if (gl2d.gl) { return gl2d.gl; };
+          if (gl2d.gl) { return gl2d.gl; }
 
           var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
 
@@ -458,47 +458,51 @@
         gl   = this.gl;
 
     // Converts rgb(a) color string to gl color vector
-    function colorStringToVec4(colorString) {
-      var glColor = colorString.replace(/[^\d.,]/g, "").split(",");
-      glColor[0] /= 255; glColor[1] /= 255; 
-      glColor[2] /= 255; glColor[3] = parseFloat(glColor[3] || 1);
+    function colorStringToVec4(value) {
+      var vec4 = value.replace(/[^\d.,]/g, "").split(",");
+      vec4[0] /= 255; vec4[1] /= 255;
+      vec4[2] /= 255; vec4[3] = parseFloat(vec4[3] || 1);
 
-      return glColor;
+      return vec4;
     }
 
     function colorVecToString(vec4) {
-      return "rgba(" + (vec4[0] * 255) + ", " + (vec4[1] * 255) + ", " + (vec4[2] * 255) + ", " + vec4[3] + ")";
+      return "rgba(" + (vec4[0] * 255) + ", " + (vec4[1] * 255) + ", " + (vec4[2] * 255) + ", " + parseFloat(vec4[3]) + ")";
     }
+
+    // Maintain drawing state params during gl.save and gl.restore. see saveDrawState() and restoreDrawState()
+    var drawState = {};
 
     // WebGL requires colors as a vector while Canvas2D sets colors as an rgba string
     // These getters and setters store the original rgba string as well as convert to a vector
-    var fillStyle  = [0, 0, 0, 1]; // default black
+    drawState.fillStyle = [0, 0, 0, 1]; // default black
 
     Object.defineProperty(gl, "fillStyle", {
-      get: function() { return colorVecToString(fillStyle); },
+      get: function() { return colorVecToString(drawState.fillStyle); },
       set: function(value) {
-        fillStyle   = colorStringToVec4(value); 
+        drawState.fillStyle = colorStringToVec4(value); 
       }
     });
 
-    var strokeStyle   = [0, 0, 0, 1]; // default black
+    drawState.strokeStyle = [0, 0, 0, 1]; // default black
 
     Object.defineProperty(gl, "strokeStyle", {
-      get: function() { return colorVecToString(strokeStyle); },
+      get: function() { return colorVecToString(drawState.strokeStyle); },
       set: function(value) {
-        strokeStyle   = colorStringToVec4(value); 
+        drawState.strokeStyle = colorStringToVec4(value); 
       }
     });
 
     // WebGL already has a lineWidth() function but Canvas2D requires a lineWidth property
     // Store the original lineWidth() function for later use
     gl.$lineWidth = gl.lineWidth;
-    var lineWidth = 1.0;
+    drawState.lineWidth = 1.0;
 
     Object.defineProperty(gl, "lineWidth", {
-      get: function() { return lineWidth; },
+      get: function() { return drawState.lineWidth; },
       set: function(value) {
         gl.$lineWidth(value); 
+        drawState.lineWidth = value;
       }
     });
     
@@ -525,12 +529,25 @@
     // This attribute will need to set the gl.blendFunc mode
     gl.globalCompositeOperation = "source-over"; 
 
+
+    var drawStateStack = [];
+
+    function saveDrawState() {
+      drawStateStack.push(JSON.parse(JSON.stringify(drawState)));
+    }
+
+    function restoreDrawState() {
+      drawState = drawStateStack.pop();
+    }
+    
     gl.save = function save() {
       gl2d.transform.pushMatrix();
+      saveDrawState();
     };
 
     gl.restore = function restore() {
       gl2d.transform.popMatrix();
+      restoreDrawState();
     };
 
     gl.translate = function translate(x, y) {
@@ -609,7 +626,7 @@
 
       sendTransformStack(shaderProgram, transform);
 
-      gl.uniform4f(shaderProgram.uColor, fillStyle[0], fillStyle[1], fillStyle[2], fillStyle[3]);
+      gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
       
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
@@ -630,7 +647,7 @@
 
       sendTransformStack(shaderProgram, transform);
 
-      gl.uniform4f(shaderProgram.uColor, strokeStyle[0], strokeStyle[1], strokeStyle[2], strokeStyle[3]);
+      gl.uniform4f(shaderProgram.uColor, drawState.strokeStyle[0], drawState.strokeStyle[1], drawState.strokeStyle[2], drawState.strokeStyle[3]);
 
       gl.drawArrays(gl.LINE_LOOP, 0, 4);
 
