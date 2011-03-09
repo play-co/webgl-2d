@@ -471,7 +471,15 @@
     }
 
     // Maintain drawing state params during gl.save and gl.restore. see saveDrawState() and restoreDrawState()
-    var drawState = {};
+    var drawState = {}, drawStateStack = [];
+
+    function saveDrawState() {
+      drawStateStack.push(JSON.parse(JSON.stringify(drawState)));
+    }
+
+    function restoreDrawState() {
+      drawState = drawStateStack.pop();
+    }
 
     // WebGL requires colors as a vector while Canvas2D sets colors as an rgba string
     // These getters and setters store the original rgba string as well as convert to a vector
@@ -507,19 +515,116 @@
     });
     
     // Currently unsupported attributes and their default values
-    gl.lineCap        = "butt";
-    gl.lineJoin       = "miter";
-    gl.miterLimit     = 10;
-    gl.shadowOffsetX  = 0;
-    gl.shadowOffsetY  = 0;
-    gl.shadowBlur     = 0;
-    gl.shadowColor    = "rgba(0, 0, 0, 0)";
-    gl.font           = "10px sans-serif";
-    gl.textAlign      = "start";
-    gl.textBaseline   = "alphabetic";
+    drawState.lineCap = "butt";
+
+    Object.defineProperty(gl, "lineCap", {
+      get: function() { return drawState.lineCap; },
+      set: function(value) {
+        drawState.lineCap = value;
+      }
+    });
+    
+    drawState.lineJoin = "miter";
+
+    Object.defineProperty(gl, "lineJoin", {
+      get: function() { return drawState.lineJoin; },
+      set: function(value) {
+        drawState.lineJoin = value;
+      }
+    });
+
+    drawState.miterLimit = 10;
+
+    Object.defineProperty(gl, "miterLimit", {
+      get: function() { return drawState.miterLimit; },
+      set: function(value) {
+        drawState.miterLimit = value;
+      }
+    });
+
+    drawState.shadowOffsetX = 0;
+
+    Object.defineProperty(gl, "shadowOffsetX", {
+      get: function() { return drawState.shadowOffsetX; },
+      set: function(value) {
+        drawState.shadowOffsetX = value;
+      }
+    });
+
+    drawState.shadowOffsetY = 0;
+
+    Object.defineProperty(gl, "shadowOffsetY", {
+      get: function() { return drawState.shadowOffsetY; },
+      set: function(value) {
+        drawState.shadowOffsetY = value;
+      }
+    });
+
+    drawState.shadowBlur = 0;
+
+    Object.defineProperty(gl, "shadowBlur", {
+      get: function() { return drawState.shadowBlur; },
+      set: function(value) {
+        drawState.shadowBlur = value;
+      }
+    });
+
+    drawState.shadowColor = "rgba(0, 0, 0, 0.0)";
+
+    Object.defineProperty(gl, "shadowColor", {
+      get: function() { return drawState.shadowColor; },
+      set: function(value) {
+        drawState.shadowColor = value;
+      }
+    });
+
+    drawState.font = "10px sans-serif";
+
+    Object.defineProperty(gl, "font", {
+      get: function() { return drawState.font; },
+      set: function(value) {
+        drawState.font = value;
+      }
+    });
+
+    drawState.textAlign = "start";
+
+    Object.defineProperty(gl, "textAlign", {
+      get: function() { return drawState.textAlign; },
+      set: function(value) {
+        drawState.textAlign = value;
+      }
+    });
+
+    drawState.textBaseline = "alphabetic";
+
+    Object.defineProperty(gl, "textBaseline", {
+      get: function() { return drawState.textBaseline; },
+      set: function(value) {
+        drawState.textBaseline = value;
+      }
+    });
 
     // This attribute will need to control global alpha of objects drawn.
-    gl.globalAlpha    = 1.0;
+    drawState.globalAlpha = 1.0;
+
+    Object.defineProperty(gl, "globalAlpha", {
+      get: function() { return drawState.globalAlpha; },
+      set: function(value) {
+        drawState.globalAlpha = value;
+      }
+    });
+
+    // This attribute will need to set the gl.blendFunc mode
+    drawState.globalCompositeOperation = "source-over"; 
+
+    Object.defineProperty(gl, "globalCompositeOperation", {
+      get: function() { return drawState.globalCompositeOperation; },
+      set: function(value) {
+        drawState.globalCompositeOperation = value;
+      }
+    });
+
 
     gl.fillText = function fillText() {};
     
@@ -530,20 +635,6 @@
     var tempCanvas = document.createElement('CANVAS');
     var tempCtx = tempCanvas.getContext('2d');
 
-    // This attribute will need to set the gl.blendFunc mode
-    gl.globalCompositeOperation = "source-over"; 
-
-
-    var drawStateStack = [];
-
-    function saveDrawState() {
-      drawStateStack.push(JSON.parse(JSON.stringify(drawState)));
-    }
-
-    function restoreDrawState() {
-      drawState = drawStateStack.pop();
-    }
-    
     gl.save = function save() {
       gl2d.transform.pushMatrix();
       saveDrawState();
