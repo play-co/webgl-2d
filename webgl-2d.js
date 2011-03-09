@@ -226,8 +226,9 @@
     return this;
   }; //rotate
 
-  var WebGL2D = this.WebGL2D = function WebGL2D(canvas) {
+  var WebGL2D = this.WebGL2D = function WebGL2D(canvas, options) {
     this.canvas         = canvas;
+    this.options        = options || {};
     this.gl             = undefined;
     this.fs             = undefined;
     this.vs             = undefined;
@@ -244,37 +245,35 @@
     // Override getContext function with "webgl-2d" enabled version
     canvas.getContext = (function(gl2d) { 
       return function(context) {
-        switch(context) {
-          case "2d":
-            return gl2d.canvas.$getContext(context);
+        if (gl2d.options.force || context === "webgl-2d") {
+          if (gl2d.gl) { return gl2d.gl; };
 
-          case "webgl-2d":
-            if (gl2d.gl) { return gl2d.gl; };
+          var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
 
-            var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
+          gl2d.initShaders();
+          gl2d.initBuffers();
+          gl2d.initCanvas2DAPI();
 
-            gl2d.initShaders();
-            gl2d.initBuffers();
-            gl2d.initCanvas2DAPI();
+          gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
 
-            gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
+          // Default white background
+          gl.clearColor(1, 1, 1, 1);
+          gl.clear(gl.COLOR_BUFFER_BIT); // | gl.DEPTH_BUFFER_BIT);
 
-            // Default white background
-            gl.clearColor(1, 1, 1, 1);
-            gl.clear(gl.COLOR_BUFFER_BIT); // | gl.DEPTH_BUFFER_BIT);
+          // Disables writing to dest-alpha
+          gl.colorMask(1,1,1,0);
 
-            // Disables writing to dest-alpha
-            gl.colorMask(1,1,1,0);
+          // Depth options
+          //gl.enable(gl.DEPTH_TEST);
+          //gl.depthFunc(gl.LEQUAL);
 
-            // Depth options
-            //gl.enable(gl.DEPTH_TEST);
-            //gl.depthFunc(gl.LEQUAL);
+          // Blending options
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-            // Blending options
-            gl.enable(gl.BLEND);
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-            return gl;
+          return gl;
+        } else {
+          return gl2d.canvas.$getContext(context);
         }
       };
     }(this));
@@ -283,8 +282,8 @@
   };
 
   // Enables WebGL2D on your canvas
-  WebGL2D.enable = function(canvas) {
-    return canvas.gl2d || new WebGL2D(canvas);
+  WebGL2D.enable = function(canvas, options) {
+    return canvas.gl2d || new WebGL2D(canvas, options);
   };
 
   
@@ -686,6 +685,8 @@
       gl.lineTo(x, y + h);
       gl.closePath();
     };
+
+    gl.arc = function arc() {};
 
     gl.fill = function fill() {
     };
