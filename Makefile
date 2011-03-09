@@ -11,5 +11,17 @@ VERSION ?= $(error Specify a version for your release (e.g., VERSION=0.5))
 check-lint:
 	${JSSHELL} -m -j -p -e "load('./support/jslint.js'); load('./support/jslint-cmdline.js'); runJslint(read('webgl-2d.js'));"
 
+WEBGL2DJS=webgl-2d.js
+TESTS=./test
+CANVASTESTS=${TESTS}/philip.html5.org
+CANVASTESTSJS=${CANVASTESTS}/tests.js
+
+${CANVASTESTSJS}: ${WEBGL2DJS}
+	@@cat webgl-2d.js ${CANVASTESTS}/tests-core.js > ${CANVASTESTSJS}
+	@@echo "Created ${CANVASTESTSJS}"
+
+# Create webgl-2d enabled tests.js
+tests: ${CANVASTESTSJS}
+
 clean:
-	rm -fr ./release
+	rm ${CANVASTESTSJS}
