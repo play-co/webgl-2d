@@ -235,8 +235,11 @@
     this.transform      = new Transform();
     this.shaderPool     = [];
 
+    // Save a reference to the WebGL2D instance on the canvas object
+    canvas.gl2d         = this
+
     // Store getContext function for later use
-    canvas.$getContext = canvas.getContext;
+    canvas.$getContext  = canvas.getContext;
 
     // Override getContext function with "webgl-2d" enabled version
     canvas.getContext = (function(gl2d) { 
@@ -246,6 +249,8 @@
             return gl2d.canvas.$getContext(context);
 
           case "webgl-2d":
+            if (gl2d.gl) { return gl2d.gl; };
+
             var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
 
             gl2d.initShaders();
@@ -279,7 +284,7 @@
 
   // Enables WebGL2D on your canvas
   WebGL2D.enable = function(canvas) {
-    return new WebGL2D(canvas);
+    return canvas.gl2d || new WebGL2D(canvas);
   };
 
   
