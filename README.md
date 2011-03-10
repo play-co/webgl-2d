@@ -43,7 +43,7 @@ WebGL-2D is a work in progress and currently supports a very small subset of the
 * save
 * restore
 * lineWidth
-* drawImage (cropping params not implemented yet)
+* drawImage
 * beginPath
 * closePath
 * moveTo
@@ -53,20 +53,7 @@ WebGL-2D is a work in progress and currently supports a very small subset of the
 * getImageData
 * putImageData
 
-Properties stubbed but currently not working
-
-* lineCap
-* lineJoin
-* miterLimit
-* shadowOffsetX
-* shadowOffsetY
-* shadowBlur
-* shadowColor
-* font
-* textAlign
-* textBaseline
-* globalAlpha
-* globalCompositeOp
+All other properties or functions are currently stubbed. Properties are set to their defaults and functions are empty.
 
 ### Benchmarks ###
 
