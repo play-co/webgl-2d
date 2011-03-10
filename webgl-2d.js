@@ -50,7 +50,7 @@
   var M_HALF_PI = M_PI / 2.0;
 
   function isPOT(value) {
-    return ((value - 1) & value) === 0;
+    return value > 0 && ((value - 1) & value) === 0;
   }
 
   var vec3 = {
