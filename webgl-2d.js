@@ -851,6 +851,21 @@
 
       imageCache.push(image); 
 
+      var tex_max = 8096;
+      
+      // we may wish to consider tiling large images like this instead of scaling and
+      // adjust appropriately (flip to next texture source and tile offset) when drawing
+      if (image.width>tex_max || image.height>tex_max) {
+        var canvas = document.createElement("canvas");
+        canvas.width = (image.width>tex_max)?tex_max:image.width;
+        canvas.height = (image.height>tex_max)?tex_max:image.height;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(image,
+                      0, 0, image.width, image.height,
+                      0, 0, canvas.width, canvas.height);
+        image = canvas;
+      }
+
       gl.bindTexture(gl.TEXTURE_2D, this.obj);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
