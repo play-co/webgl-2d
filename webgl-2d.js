@@ -42,7 +42,7 @@
  *
  */
 
-(function(undefined) {
+(function(Math, undefined) {
 
   // Vector & Matrix libraries from CubicVR.js
   var M_PI = 3.1415926535897932384626433832795028841968;
@@ -53,6 +53,7 @@
     length: function(pt) {
       return Math.sqrt(pt[0] * pt[0] + pt[1] * pt[1] + pt[2] * pt[2]);
     },
+
     normalize: function(pt) {
       var d = Math.sqrt((pt[0] * pt[0]) + (pt[1] * pt[1]) + (pt[2] * pt[2]));
       if (d === 0) {
@@ -60,24 +61,31 @@
       }
       return [pt[0] / d, pt[1] / d, pt[2] / d];
     },
+
     dot: function(v1, v2) {
       return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
     },
+
     angle: function(v1, v2) {
       return Math.acos((v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]) / (Math.sqrt(v1[0] * v1[0] + v1[1] * v1[1] + v1[2] * v1[2]) * Math.sqrt(v2[0] * v2[0] + v2[1] * v2[1] + v2[2] * v2[2])));
     },
+
     cross: function(vectA, vectB) {
       return [vectA[1] * vectB[2] - vectB[1] * vectA[2], vectA[2] * vectB[0] - vectB[2] * vectA[0], vectA[0] * vectB[1] - vectB[0] * vectA[1]];
     },
+
     multiply: function(vectA, constB) {
       return [vectA[0] * constB, vectA[1] * constB, vectA[2] * constB];
     },
+
     add: function(vectA, vectB) {
       return [vectA[0] + vectB[0], vectA[1] + vectB[1], vectA[2] + vectB[2]];
     },
+
     subtract: function(vectA, vectB) {
       return [vectA[0] - vectB[0], vectA[1] - vectB[1], vectA[2] - vectB[2]];
     },
+
     equal: function(a, b) {
       var epsilon = 0.0000001;
       if ((a === undefined) && (b === undefined)) {
@@ -89,10 +97,12 @@
       return (Math.abs(a[0] - b[0]) < epsilon && Math.abs(a[1] - b[1]) < epsilon && Math.abs(a[2] - b[2]) < epsilon);
     }
   }; 
-    var mat3 = {
+
+  var mat3 = {
     identity: [1.0, 0.0, 0.0,
                0.0, 1.0, 0.0,
                0.0, 0.0, 1.0],
+
     multiply: function (m1, m2) {
       var mOut = [];
       mOut[0] = m2[0] * m1[0] + m2[3] * m1[1] + m2[6] * m1[2];
@@ -106,12 +116,14 @@
       mOut[8] = m2[2] * m1[6] + m2[5] * m1[7] + m2[8] * m1[8];
       return mOut;
     },
+
     vec2_multiply: function (m1, m2) {
       var mOut = [];
       mOut[0] = m2[0] * m1[0] + m2[3] * m1[1] + m2[6];
       mOut[1] = m2[1] * m1[0] + m2[4] * m1[1] + m2[7];
       return mOut;
     },
+
     transpose: function (m) {
       return [m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]];
     }
@@ -246,7 +258,7 @@
     // Override getContext function with "webgl-2d" enabled version
     canvas.getContext = (function(gl2d) { 
       return function(context) {
-        if (gl2d.options.force || context === "webgl-2d") {
+        if ((gl2d.options.force || context === "webgl-2d") && !(canvas.width === 0 || canvas.height === 0)) {
           if (gl2d.gl) { return gl2d.gl; }
 
           var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
@@ -485,9 +497,10 @@
         vec4 = [((colorInt & 0xFF0000) >> 16) / 255, ((colorInt & 0x00FF00) >> 8) / 255, (colorInt & 0x0000FF) / 255, 1.0];
       } else if ((match = reHex3Color.exec(value))) {
         var hexString = [match[1], match[1], match[2], match[2], match[3], match[3]].join("");
-        var colorInt = parseInt(hexString, 16);
-        vec4 = [((colorInt & 0xFF0000) >> 16) / 255, ((colorInt & 0x00FF00) >> 8) / 255, (colorInt & 0x0000FF) / 255, 1.0];
+        vec4 = colorStringToVec4(hexString);
       } else {
+        // Color keywords not yet implemented, ie "orange", return black
+        vec4 = [0, 0, 0, 1];
       }
 
       return vec4;
@@ -939,4 +952,4 @@
     };
   };
 
-}());
+}(Math));
