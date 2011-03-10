@@ -862,9 +862,6 @@
       gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
-    //drawImage(image, dx, dy)
-    //drawImage(image, dx, dy, dw, dh)
-    //drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh) 
     gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
       var transform = gl2d.transform;
 
@@ -873,13 +870,20 @@
       var sMask = shaderMask.texture;
       var doCrop = false;
 
+      //drawImage(image, dx, dy)
       if (arguments.length === 3) {
         transform.translate(a, b);
         transform.scale(image.width, image.height);
-      } else if (arguments.length === 5) {
+      } 
+
+      //drawImage(image, dx, dy, dw, dh)
+      else if (arguments.length === 5) {
         transform.translate(a, b);
         transform.scale(c, d);
-      } else if (arguments.length === 9) {
+      } 
+
+      //drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh) 
+      else if (arguments.length === 9) {
         transform.translate(e, f);
         transform.scale(g, h);
         sMask = sMask|shaderMask.crop;
