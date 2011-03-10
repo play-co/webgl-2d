@@ -235,7 +235,8 @@
     this.shaderProgram  = undefined;
     this.transform      = new Transform();
     this.shaderPool     = [];
-
+    this.tex_max_size   = undefined;
+    
     // Save a reference to the WebGL2D instance on the canvas object
     canvas.gl2d         = this;
 
@@ -270,6 +271,8 @@
           // Blending options
           gl.enable(gl.BLEND);
           gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+          gl2d.tex_max_size = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
           return gl;
         } else {
@@ -851,14 +854,12 @@
 
       imageCache.push(image); 
 
-      var tex_max = 8096;
-      
       // we may wish to consider tiling large images like this instead of scaling and
       // adjust appropriately (flip to next texture source and tile offset) when drawing
-      if (image.width>tex_max || image.height>tex_max) {
+      if (image.width>gl2d.tex_max_size || image.height>gl2d.tex_max_size) {
         var canvas = document.createElement("canvas");
-        canvas.width = (image.width>tex_max)?tex_max:image.width;
-        canvas.height = (image.height>tex_max)?tex_max:image.height;
+        canvas.width = (image.width>gl2d.tex_max_size)?gl2d.tex_max_size:image.width;
+        canvas.height = (image.height>gl2d.tex_max_size)?gl2d.tex_max_size:image.height;
         var ctx = canvas.getContext("2d");
         ctx.drawImage(image,
                       0, 0, image.width, image.height,
