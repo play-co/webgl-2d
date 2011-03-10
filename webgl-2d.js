@@ -235,7 +235,7 @@
     this.shaderProgram  = undefined;
     this.transform      = new Transform();
     this.shaderPool     = [];
-    this.tex_max_size   = undefined;
+    this.maxTextureSize = undefined;
     
     // Save a reference to the WebGL2D instance on the canvas object
     canvas.gl2d         = this;
@@ -272,7 +272,7 @@
           gl.enable(gl.BLEND);
           gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-          gl2d.tex_max_size = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+          gl2d.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
           return gl;
         } else {
@@ -505,7 +505,9 @@
     }
 
     function restoreDrawState() {
-      drawState = drawStateStack.pop();
+      if (drawStateStack.length) {
+        drawState = drawStateStack.pop();
+      }
     }
 
     // WebGL requires colors as a vector while Canvas2D sets colors as an rgba string
@@ -856,24 +858,26 @@
 
       // we may wish to consider tiling large images like this instead of scaling and
       // adjust appropriately (flip to next texture source and tile offset) when drawing
-      if (image.width>gl2d.tex_max_size || image.height>gl2d.tex_max_size) {
+      if (image.width > gl2d.maxTextureSize || image.height > gl2d.maxTextureSize) {
         var canvas = document.createElement("canvas");
-        canvas.width = (image.width>gl2d.tex_max_size)?gl2d.tex_max_size:image.width;
-        canvas.height = (image.height>gl2d.tex_max_size)?gl2d.tex_max_size:image.height;
+
+        canvas.width  = (image.width  > gl2d.maxTextureSize) ? gl2d.maxTextureSize : image.width;
+        canvas.height = (image.height > gl2d.maxTextureSize) ? gl2d.maxTextureSize : image.height;
+
         var ctx = canvas.getContext("2d");
-        ctx.drawImage(image,
-                      0, 0, image.width, image.height,
-                      0, 0, canvas.width, canvas.height);
+
+        ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height);
+
         image = canvas;
       }
 
       gl.bindTexture(gl.TEXTURE_2D, this.obj);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); // requires POT texture
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       //gl.generateMipmap(gl.TEXTURE_2D); // requires POT texture
       gl.bindTexture(gl.TEXTURE_2D, null);
     }
