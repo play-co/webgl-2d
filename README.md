@@ -67,3 +67,23 @@ Properties stubbed but currently not working
 * textBaseline
 * globalAlpha
 * globalCompositeOp
+
+### Benchmarks ###
+
+WebGL-2D should be faster than Canvas2D at certain things and slower at others.
+It is important that you know what to expect when using WebGL-2D with your
+project.
+
+The benchmarks directory contains benchmarks for testing performance
+
+**asteroidsbench/**
+
+[Kevin Roast](http://twitter.com/kevinroast) has graciously given permission to include this benchmark in the
+WebGL-2D project.
+
+This benchmark is perfect for testing real world canvas usage in game engine.
+It relies heavily on 9 arg drawImage cropping to implement scrolling
+backgrounds and stripstrip animations.
+
+Visit his [website](http://www.kevs3d.co.uk/) for other HTML5 canvas demos as
+well as the [asteroids game](http://www.kevs3d.co.uk/dev/asteroids/)
