@@ -49,6 +49,10 @@
   var M_TWO_PI = 2.0 * M_PI;
   var M_HALF_PI = M_PI / 2.0;
 
+  function isPOT(value) {
+    return ((value - 1) & value) === 0;
+  }
+
   var vec3 = {
     length: function(pt) {
       return Math.sqrt(pt[0] * pt[0] + pt[1] * pt[1] + pt[2] * pt[2]);
@@ -889,9 +893,16 @@
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); // requires POT texture
-      //gl.generateMipmap(gl.TEXTURE_2D); // requires POT texture
+
+      // Enable Mip mapping on power-of-2 textures 
+      if (isPOT(image.width) && isPOT(image.height)) {
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); 
+        gl.generateMipmap(gl.TEXTURE_2D);
+      } else {
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      }
+
+      // Unbind texture
       gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
