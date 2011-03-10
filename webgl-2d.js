@@ -290,10 +290,7 @@
   // Shader Pool BitMasks, i.e. sMask = (shaderMask.texture+shaderMask.stroke)
   var shaderMask = {
     texture: 1,
-    stroke: 2,
-    another_option: 4,
-    and_another: 8,
-    etc: 16
+    crop: 2
   };
 
 
@@ -305,17 +302,25 @@
       "#endif",
 
       "#define hasTexture "+((sMask&shaderMask.texture)?"1":"0"),
+      "#define hasCrop "+((sMask&shaderMask.crop)?"1":"0"),
 
       "varying vec4 vColor;",
       
       "#if hasTexture",
         "varying vec2 vTextureCoord;",
         "uniform sampler2D uSampler;",
+        "#if hasCrop",
+          "uniform vec4 uCropSource;",
+        "#endif",
       "#endif",
       
       "void main(void) {",
         "#if hasTexture",
-          "gl_FragColor = texture2D(uSampler, vTextureCoord);",
+          "#if hasCrop",
+            "gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x*uCropSource.z,vTextureCoord.y*uCropSource.w)+uCropSource.xy);",
+          "#else",
+            "gl_FragColor = texture2D(uSampler, vTextureCoord);",
+          "#endif",
         "#else",
           "gl_FragColor = vColor;",
         "#endif",
@@ -414,6 +419,7 @@
 
       shaderProgram.uColor   = gl.getUniformLocation(shaderProgram, 'uColor');
       shaderProgram.uSampler = gl.getUniformLocation(shaderProgram, 'uSampler');
+      shaderProgram.uCropSource = gl.getUniformLocation(shaderProgram, 'uCropSource');
 
       shaderProgram.uTransforms = [];
       for (var i=0; i<transformStackDepth; ++i) {
@@ -861,7 +867,26 @@
     //drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh) 
     gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
       var transform = gl2d.transform;
-      var shaderProgram = gl2d.initShaders(transform.c_stack + 2, shaderMask.texture);
+
+      transform.pushMatrix();
+
+      var sMask = shaderMask.texture;
+      var doCrop = false;
+
+      if (arguments.length === 3) {
+        transform.translate(a, b);
+        transform.scale(image.width, image.height);
+      } else if (arguments.length === 5) {
+        transform.translate(a, b);
+        transform.scale(c, d);
+      } else if (arguments.length === 9) {
+        transform.translate(e, f);
+        transform.scale(g, h);
+        sMask = sMask|shaderMask.crop;
+        doCrop = true;
+      }
+
+      var shaderProgram = gl2d.initShaders(transform.c_stack, sMask);
 
       var texture, cacheIndex = imageCache.indexOf(image);
 
@@ -871,25 +896,15 @@
         texture = new Texture(image);  
       }
 
+      if (doCrop) {
+        gl.uniform4f(shaderProgram.uCropSource, a/image.width, b/image.height, c/image.width, d/image.height);        
+      }
+
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
       gl.bindTexture(gl.TEXTURE_2D, texture.obj);
       gl.activeTexture(gl.TEXTURE0);
-
-      transform.pushMatrix();
-
-      if (arguments.length === 3) {
-        transform.translate(a, b);
-        transform.scale(image.width, image.height);
-      } else if (arguments.length === 5) {
-        transform.translate(a, b);
-        transform.scale(c, d);
-      } else if (arguments.length === 9) {
-        // Not yet implemented
-        transform.translate(e, f);
-        transform.scale(g, h);
-      }
 
       gl.uniform1i(shaderProgram.uSampler, 0);
 
