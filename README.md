@@ -44,14 +44,18 @@ WebGL-2D is a work in progress and currently supports a very small subset of the
 * restore
 * lineWidth
 * drawImage
+* createImageData
+* getImageData
+* putImageData
 * beginPath
 * closePath
 * moveTo
 * lineTo
 * rect
-* createImageData
-* getImageData
-* putImageData
+* fill*
+* stroke* 
+
+*fill and stroke only work on straight line paths supported above, arc, and curves are not yet supported.
 
 All other properties or functions are currently stubbed. Properties are set to their defaults and functions are empty.
 
