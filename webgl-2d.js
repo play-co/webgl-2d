@@ -332,13 +332,17 @@
           "uniform vec4 uCropSource;",
         "#endif",
       "#endif",
+	  
+	  "uniform vec4 uColor;",
       
       "void main(void) {",
         "#if hasTexture",
           "#if hasCrop",
-            "gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x*uCropSource.z,vTextureCoord.y*uCropSource.w)+uCropSource.xy);",
+			"vec4 col = texture2D(uSampler, vec2(vTextureCoord.x*uCropSource.z,vTextureCoord.y*uCropSource.w)+uCropSource.xy);",
+            "gl_FragColor = col;",
           "#else",
-            "gl_FragColor = texture2D(uSampler, vTextureCoord);",
+			"vec4 col = texture2D(uSampler, vTextureCoord);",
+            "gl_FragColor = vec4( col.r*uColor.r , col.g*uColor.g , col.b*uColor.b, col.a*uColor.a );",
           "#endif",
         "#else",
           "gl_FragColor = vColor;",
@@ -452,9 +456,6 @@
   var rectVertexPositionBuffer;
   var rectVertexColorBuffer;
 
-  var pathVertexPositionBuffer;
-  var pathVertexColorBuffer;
-
   // 2D Vertices and Texture UV coords
   var rectVerts = new Float32Array([
       0,0, 0,0, 
@@ -468,9 +469,6 @@
 
     rectVertexPositionBuffer  = gl.createBuffer();
     rectVertexColorBuffer     = gl.createBuffer();
-
-    pathVertexPositionBuffer  = gl.createBuffer();
-    pathVertexColorBuffer     = gl.createBuffer();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
@@ -487,13 +485,6 @@
   WebGL2D.prototype.initCanvas2DAPI = function initCanvas2DAPI() {
     var gl2d = this,
         gl   = this.gl;
-
-
-    // Rendering Canvas for text fonts
-    var textCanvas    = document.createElement("canvas");
-    textCanvas.width  = gl2d.canvas.width;
-    textCanvas.height = gl2d.canvas.height;
-    var textCtx       = textCanvas.getContext("2d");
 
     var reRGBAColor = /^rgb(a)?\(\s*([\d]+)(%)?,\s*([\d]+)(%)?,\s*([\d]+)(%)?,?\s*([\d\.]+)?\s*\)$/;
     var reHex6Color = /^#([0-9A-Fa-f]{6})$/;
@@ -642,7 +633,6 @@
     Object.defineProperty(gl, "font", {
       get: function() { return drawState.font; },
       set: function(value) {
-        textCtx.font = value;
         drawState.font = value;
       }
     });
@@ -685,14 +675,8 @@
       }
     });
 
-    gl.fillText = function fillText(text, x, y) {
-      x = isNaN(x) ? 0 : x;
-      textCtx.clearRect(0, 0, gl2d.canvas.width, gl2d.canvas.height);
-      textCtx.fillStyle = gl.fillStyle;
-      textCtx.fillText(text, x, y);
 
-      //gl.drawImage(textCanvas, 0, 0);
-    };
+    gl.fillText = function fillText() {};
     
     gl.strokeText = function strokeText() {};
     
@@ -821,7 +805,7 @@
 
     function SubPath(x, y) {
       this.closed = false;
-      this.verts = [x, y, 0, 0];
+      this.verts = [[x, y]];
     }
 
     // Empty the list of subpaths so that the context once again has zero subpaths
@@ -833,7 +817,7 @@
     gl.closePath = function closePath() {
       if (subPaths.length) {
         // Mark last subpath closed.
-        var prevPath = subPaths[subPaths.length -1], startX = prevPath.verts[0], startY = prevPath.verts[1];
+        var prevPath = subPaths[subPaths.length -1], startX = prevPath.verts[0][0], startY = prevPath.verts[0][1];
         prevPath.closed = true;
 
         // Create new subpath using the starting position of previous subpath
@@ -849,7 +833,7 @@
 
     gl.lineTo = function lineTo(x, y) {
       if (subPaths.length) {
-        subPaths[subPaths.length -1].verts.push(x, y, 0, 0);
+        subPaths[subPaths.length -1].verts.push([x, y]);
       } else {
         // Create a new subpath if none currently exist
         gl.moveTo(x, y);
@@ -873,67 +857,9 @@
 
     gl.arc = function arc() {};
 
-    function fillSubPath(index) {
-      var transform = gl2d.transform;
-      var shaderProgram = gl2d.initShaders(transform.c_stack + 2,0);
+    gl.fill = function fill() {};
 
-      var subPath = subPaths[index];
-      var verts = subPath.verts;      
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, pathVertexPositionBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-
-      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
-
-      transform.pushMatrix();
-
-      sendTransformStack(shaderProgram, transform);
-
-      gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
-
-      gl.drawArrays(gl.TRIANGLE_FAN, 0, verts.length/4);
-      
-      transform.popMatrix();
-    }
-
-    gl.fill = function fill() {
-      for(var i = 0; i < subPaths.length; i++) {
-        fillSubPath(i);
-      }
-    };
-
-    function strokeSubPath(index) {
-      var transform = gl2d.transform;
-      var shaderProgram = gl2d.initShaders(transform.c_stack + 2,0);
-
-      var subPath = subPaths[index];
-      var verts = subPath.verts;      
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, pathVertexPositionBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-
-      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
-
-      transform.pushMatrix();
-
-      sendTransformStack(shaderProgram, transform);
-
-      gl.uniform4f(shaderProgram.uColor, drawState.strokeStyle[0], drawState.strokeStyle[1], drawState.strokeStyle[2], drawState.strokeStyle[3]);
-
-      if (subPath.closed) {
-        gl.drawArrays(gl.LINE_LOOP, 0, verts.length/4);
-      } else {
-        gl.drawArrays(gl.LINE_STRIP, 0, verts.length/4);
-      }
-      
-      transform.popMatrix();
-    }
-
-    gl.stroke = function stroke() {
-      for(var i = 0; i < subPaths.length; i++) {
-        strokeSubPath(i);
-      }
-    };
+    gl.stroke = function stroke() {};
 
     gl.clip = function clip() {};
 
@@ -1026,6 +952,9 @@
         gl.uniform4f(shaderProgram.uCropSource, a/image.width, b/image.height, c/image.width, d/image.height);        
       }
 
+			//fuzzy : maybe this should be the fill style? control would be nice, but doesnt seem to be a canvas thing like globalAlpha
+	  gl.uniform4f(shaderProgram.uColor, /*drawState.fillStyle[0]*/ 1, /*drawState.fillStyle[1]*/ 1, /*drawState.fillStyle[2]*/ 1, drawState.globalAlpha);
+	  
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
