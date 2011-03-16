@@ -873,8 +873,33 @@
 
     gl.arc = function arc() {};
 
+    function fillSubPath(index) {
+      var transform = gl2d.transform;
+      var shaderProgram = gl2d.initShaders(transform.c_stack + 2,0);
+
+      var subPath = subPaths[index];
+      var verts = subPath.verts;      
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, pathVertexPositionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
+
+      transform.pushMatrix();
+
+      sendTransformStack(shaderProgram, transform);
+
+      gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
+
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, verts.length/4);
+      
+      transform.popMatrix();
+    }
+
     gl.fill = function fill() {
-      // only fill closed sub paths
+      for(var i = 0; i < subPaths.length; i++) {
+        fillSubPath(i);
+      }
     };
 
     function strokeSubPath(index) {

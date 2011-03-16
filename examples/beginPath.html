@@ -28,31 +28,36 @@
       }
 
       function draw(ctx) {
-        ctx.strokeStyle = "rgba(255, 50, 255, 0.5)";
         ctx.fillStyle = "rgb(50, 0, 50)";
         ctx.fillRect(0, 0, width, height);
+        ctx.fillStyle = "rgb(0, 50, 50)";
 
         ctx.strokeStyle = "rgba(50, 255, 255, 0.5)";
+        
         ctx.beginPath();
-          ctx.lineTo(0, 0);
-          ctx.lineTo(100, 100);
-          ctx.lineTo(100, 0);
-          ctx.lineTo(0, 0);
+        ctx.lineTo(100, 100);
+        ctx.lineTo(200, 200);
+        ctx.lineTo(200, 100);
+        ctx.lineTo(100, 100);
 
-          ctx.moveTo(width, height);
-          ctx.lineTo(width - 100, height - 100);
-          ctx.lineTo(width - 100, height);
-          ctx.closePath();
+        ctx.moveTo(width - 10, height - 10);
+        ctx.lineTo(width - 120, height - 120);
+        ctx.lineTo(width - 120, height -20);
+        ctx.closePath();
 
-          ctx.moveTo(260, 300);
-          ctx.lineTo(300, 300);
-          ctx.lineTo(350, 100);
-          ctx.stroke();
+        ctx.moveTo(240, 100);
+        ctx.lineTo(340, 100);
+        ctx.lineTo(340, 200);
+        ctx.lineTo(240, 200);
+        ctx.fill();
+        ctx.stroke();
         ctx.closePath();
 
         ctx.beginPath();
-          ctx.stroke();
-        ctx.closePath();
+        ctx.translate(100, 100);
+        ctx.rotate(Math.PI/4);
+        ctx.rect(0, 0, 140, 100);
+        ctx.stroke();
       }
     </script>
 
