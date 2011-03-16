@@ -530,8 +530,20 @@
     // Maintain drawing state params during gl.save and gl.restore. see saveDrawState() and restoreDrawState()
     var drawState = {}, drawStateStack = [];
 
+    // A fast simple shallow clone
+    function cloneObject(obj) {
+      var target = {};
+      for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+          target[i] = obj[i];
+        }
+      }
+      return target;
+    }
+
     function saveDrawState() {
-      drawStateStack.push(JSON.parse(JSON.stringify(drawState)));
+      //drawStateStack.push(JSON.parse(JSON.stringify(drawState)));
+      drawStateStack.push(cloneObject(drawState));
     }
 
     function restoreDrawState() {
@@ -685,13 +697,15 @@
       }
     });
 
+    // Need a solution for drawing text that isnt stupid slow
     gl.fillText = function fillText(text, x, y) {
-      x = isNaN(x) ? 0 : x;
+      /*
       textCtx.clearRect(0, 0, gl2d.canvas.width, gl2d.canvas.height);
       textCtx.fillStyle = gl.fillStyle;
       textCtx.fillText(text, x, y);
 
-      //gl.drawImage(textCanvas, 0, 0);
+      gl.drawImage(textCanvas, 0, 0);
+      */
     };
     
     gl.strokeText = function strokeText() {};
@@ -761,9 +775,9 @@
       m[7] = 0;
     };
 
-    function sendTransformStack(sp, transform) {
-      var stack = transform.m_stack;
-      for (var i=0, maxI=transform.c_stack+1; i<maxI; ++i) {
+    function sendTransformStack(sp) {
+      var stack = gl2d.transform.m_stack;
+      for (var i = 0, maxI = gl2d.transform.c_stack + 1; i < maxI; ++i) {
         gl.uniformMatrix3fv(sp.uTransforms[i], false, stack[maxI-1-i]);
       } //for
     }
@@ -785,7 +799,7 @@
       transform.translate(x, y);
       transform.scale(width, height);
 
-      sendTransformStack(shaderProgram, transform);
+      sendTransformStack(shaderProgram);
 
       gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
       
@@ -806,7 +820,7 @@
       transform.translate(x, y);
       transform.scale(width, height);
 
-      sendTransformStack(shaderProgram, transform);
+      sendTransformStack(shaderProgram);
 
       gl.uniform4f(shaderProgram.uColor, drawState.strokeStyle[0], drawState.strokeStyle[1], drawState.strokeStyle[2], drawState.strokeStyle[3]);
 
@@ -815,7 +829,7 @@
       transform.popMatrix();
     };
 
-    gl.clearRect = function clearRect() {};
+    gl.clearRect = function clearRect(x, y, width, height) {};
 
     var subPaths = [];
 
@@ -856,9 +870,9 @@
       }
     };
 
-    gl.quadraticCurveTo = function quadraticCurveTo() {};
+    gl.quadraticCurveTo = function quadraticCurveTo(cp1x, cp1y, x, y) {};
 
-    gl.bezierCurveTo = function bezierCurveTo() {};
+    gl.bezierCurveTo = function bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y) {};
 
     gl.arcTo = function arcTo() {};
 
@@ -871,7 +885,7 @@
       gl.closePath();
     };
 
-    gl.arc = function arc() {};
+    gl.arc = function arc(x, y, radius, startAngle, endAngle, anticlockwise) {};
 
     function fillSubPath(index) {
       var transform = gl2d.transform;
@@ -887,7 +901,7 @@
 
       transform.pushMatrix();
 
-      sendTransformStack(shaderProgram, transform);
+      sendTransformStack(shaderProgram);
 
       gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
 
@@ -916,7 +930,7 @@
 
       transform.pushMatrix();
 
-      sendTransformStack(shaderProgram, transform);
+      sendTransformStack(shaderProgram);
 
       gl.uniform4f(shaderProgram.uColor, drawState.strokeStyle[0], drawState.strokeStyle[1], drawState.strokeStyle[2], drawState.strokeStyle[3]);
 
@@ -1034,7 +1048,7 @@
 
       gl.uniform1i(shaderProgram.uSampler, 0);
 
-      sendTransformStack(shaderProgram, transform);
+      sendTransformStack(shaderProgram);
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
       transform.popMatrix();

@@ -28,9 +28,9 @@
       }
 
       function draw(ctx) {
-        ctx.fillStyle = "rgb(50, 0, 50)";
+        ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.fillRect(0, 0, width, height);
-        ctx.fillStyle = "rgb(0, 50, 50)";
+        ctx.fillStyle = "rgb(255, 200, 255)";
 
         ctx.strokeStyle = "rgba(50, 255, 255, 0.5)";
         
@@ -39,12 +39,15 @@
         ctx.lineTo(200, 200);
         ctx.lineTo(200, 100);
         ctx.lineTo(100, 100);
-
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(50, 0, 255, 0.5)";
         ctx.moveTo(width - 10, height - 10);
         ctx.lineTo(width - 120, height - 120);
         ctx.lineTo(width - 120, height -20);
         ctx.closePath();
 
+        ctx.lineWidth = 4;
         ctx.moveTo(240, 100);
         ctx.lineTo(340, 100);
         ctx.lineTo(340, 200);
@@ -53,6 +56,7 @@
         ctx.stroke();
         ctx.closePath();
 
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.translate(100, 100);
         ctx.rotate(Math.PI/4);
