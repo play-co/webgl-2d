@@ -44,6 +44,7 @@ WebGL-2D is a work in progress and currently supports a very small subset of the
 * restore
 * lineWidth
 * drawImage
+* globalAlpha
 * beginPath
 * closePath
 * moveTo
