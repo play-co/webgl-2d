@@ -109,20 +109,17 @@
 
     multiply: function (m1, m2) {
       var m10 = m1[0], m11 = m1[1], m12 = m1[2], m13 = m1[3], m14 = m1[4], m15 = m1[5], m16 = m1[6], m17 = m1[7], m18 = m1[8],
-          m20 = m2[0], m21 = m2[1], m22 = m2[2], m23 = m2[3], m24 = m2[4], m25 = m2[5], m26 = m2[6], m27 = m2[7], m28 = m2[8],
-          mOut = [];
+          m20 = m2[0], m21 = m2[1], m22 = m2[2], m23 = m2[3], m24 = m2[4], m25 = m2[5], m26 = m2[6], m27 = m2[7], m28 = m2[8];
           
-      mOut[0] = m20 * m10 + m23 * m11 + m26 * m12;
-      mOut[1] = m21 * m10 + m24 * m11 + m27 * m12;
-      mOut[2] = m22 * m10 + m25 * m11 + m28 * m12;
-      mOut[3] = m20 * m13 + m23 * m14 + m26 * m15;
-      mOut[4] = m21 * m13 + m24 * m14 + m27 * m15;
-      mOut[5] = m22 * m13 + m25 * m14 + m28 * m15;
-      mOut[6] = m20 * m16 + m23 * m17 + m26 * m18;
-      mOut[7] = m21 * m16 + m24 * m17 + m27 * m18;
-      mOut[8] = m22 * m16 + m25 * m17 + m28 * m18;
-
-      return mOut;
+      m2[0] = m20 * m10 + m23 * m11 + m26 * m12;
+      m2[1] = m21 * m10 + m24 * m11 + m27 * m12;
+      m2[2] = m22 * m10 + m25 * m11 + m28 * m12;
+      m2[3] = m20 * m13 + m23 * m14 + m26 * m15;
+      m2[4] = m21 * m13 + m24 * m14 + m27 * m15;
+      m2[5] = m22 * m13 + m25 * m14 + m28 * m15;
+      m2[6] = m20 * m16 + m23 * m17 + m26 * m18;
+      m2[7] = m21 * m16 + m24 * m17 + m27 * m18;
+      m2[8] = m22 * m16 + m25 * m17 + m28 * m18;
     },
 
     vec2_multiply: function (m1, m2) {
@@ -142,6 +139,8 @@
     return this.clearStack(mat);
   }
 
+  var STACK_DEPTH_LIMIT = 16;
+
   Transform.prototype.clearStack = function(init_mat) {
     this.m_stack = [];
     this.m_cache = [];
@@ -149,13 +148,15 @@
     this.valid = 0;
     this.result = null;
 
+    for (var i = 0; i < STACK_DEPTH_LIMIT; i++) {
+      this.m_stack[i] = this.getIdentity();
+    }
+
     if (init_mat !== undefined) {
       this.m_stack[0] = init_mat;
     } else {
       this.setIdentity();
     }
-
-    return this;
   }; //clearStack
 
   Transform.prototype.setIdentity = function() {
@@ -163,7 +164,6 @@
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
     }
-    return this;
   };
 
   Transform.prototype.getIdentity = function() {
@@ -193,58 +193,67 @@
     return this.result;
   };
 
-  Transform.prototype.pushMatrix = function(m) {
+  Transform.prototype.pushMatrix = function() {
     this.c_stack++;
-    this.m_stack[this.c_stack] = (m ? m : mat3.identity);
-    return this;
+    this.m_stack[this.c_stack] = this.getIdentity();
   };
 
   Transform.prototype.popMatrix = function() {
-    if (this.c_stack === 0) {
-      return;
-    }
+    if (this.c_stack === 0) { return; }
     this.c_stack--;
-    return this;
-  }; //popMatrix
+  };
+
+  var translateMatrix = Transform.prototype.getIdentity();
 
   Transform.prototype.translate = function(x, y) {
-    var m = this.getIdentity();
-    m[6] = x;
-    m[7] = y;
-    this.m_stack[this.c_stack] = mat3.multiply(m, this.m_stack[this.c_stack]);
+    translateMatrix[6] = x;
+    translateMatrix[7] = y;
 
+    mat3.multiply(translateMatrix, this.m_stack[this.c_stack]);
+
+    /*
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
     }
-    return this;
-  }; //translate
+    */
+  };
+
+  var scaleMatrix = Transform.prototype.getIdentity();
 
   Transform.prototype.scale = function(x, y) {
-    var m = this.getIdentity();
-    m[0] = x;
-    m[4] = y;
-    this.m_stack[this.c_stack] = mat3.multiply(m, this.m_stack[this.c_stack]);
+    scaleMatrix[0] = x;
+    scaleMatrix[4] = y;
+
+    mat3.multiply(scaleMatrix, this.m_stack[this.c_stack]);
+
+    /*
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
     }
-    return this;
-  }; //scale
+    */
+  };
+
+  var rotateMatrix = Transform.prototype.getIdentity();
 
   Transform.prototype.rotate = function(ang) {
     var sAng, cAng;
+
     sAng = Math.sin(-ang);
     cAng = Math.cos(-ang);
-    var Z_ROT = this.getIdentity();
-    Z_ROT[0] = cAng;
-    Z_ROT[3] = sAng;
-    Z_ROT[1] = -sAng;
-    Z_ROT[4] = cAng;
-    this.m_stack[this.c_stack] = mat3.multiply(Z_ROT, this.m_stack[this.c_stack]);
+
+    rotateMatrix[0] = cAng;
+    rotateMatrix[3] = sAng;
+    rotateMatrix[1] = -sAng;
+    rotateMatrix[4] = cAng;
+
+    mat3.multiply(rotateMatrix, this.m_stack[this.c_stack]);
+
+    /*
     if (this.valid === this.c_stack && this.c_stack) {
       this.valid--;
     }
-    return this;
-  }; //rotate
+    */
+  };
 
   var WebGL2D = this.WebGL2D = function WebGL2D(canvas, options) {
     this.canvas         = canvas;
