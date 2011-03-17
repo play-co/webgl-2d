@@ -108,16 +108,20 @@
                0.0, 0.0, 1.0],
 
     multiply: function (m1, m2) {
-      var mOut = [];
-      mOut[0] = m2[0] * m1[0] + m2[3] * m1[1] + m2[6] * m1[2];
-      mOut[1] = m2[1] * m1[0] + m2[4] * m1[1] + m2[7] * m1[2];
-      mOut[2] = m2[2] * m1[0] + m2[5] * m1[1] + m2[8] * m1[2];
-      mOut[3] = m2[0] * m1[3] + m2[3] * m1[4] + m2[6] * m1[5];
-      mOut[4] = m2[1] * m1[3] + m2[4] * m1[4] + m2[7] * m1[5];
-      mOut[5] = m2[2] * m1[3] + m2[5] * m1[4] + m2[8] * m1[5];
-      mOut[6] = m2[0] * m1[6] + m2[3] * m1[7] + m2[6] * m1[8];
-      mOut[7] = m2[1] * m1[6] + m2[4] * m1[7] + m2[7] * m1[8];
-      mOut[8] = m2[2] * m1[6] + m2[5] * m1[7] + m2[8] * m1[8];
+      var m10 = m1[0], m11 = m1[1], m12 = m1[2], m13 = m1[3], m14 = m1[4], m15 = m1[5], m16 = m1[6], m17 = m1[7], m18 = m1[8],
+          m20 = m2[0], m21 = m2[1], m22 = m2[2], m23 = m2[3], m24 = m2[4], m25 = m2[5], m26 = m2[6], m27 = m2[7], m28 = m2[8],
+          mOut = [];
+          
+      mOut[0] = m20 * m10 + m23 * m11 + m26 * m12;
+      mOut[1] = m21 * m10 + m24 * m11 + m27 * m12;
+      mOut[2] = m22 * m10 + m25 * m11 + m28 * m12;
+      mOut[3] = m20 * m13 + m23 * m14 + m26 * m15;
+      mOut[4] = m21 * m13 + m24 * m14 + m27 * m15;
+      mOut[5] = m22 * m13 + m25 * m14 + m28 * m15;
+      mOut[6] = m20 * m16 + m23 * m17 + m26 * m18;
+      mOut[7] = m21 * m16 + m24 * m17 + m27 * m18;
+      mOut[8] = m22 * m16 + m25 * m17 + m28 * m18;
+
       return mOut;
     },
 
@@ -137,6 +141,22 @@
   function Transform(mat) {
     return this.clearStack(mat);
   }
+
+  Transform.prototype.clearStack = function(init_mat) {
+    this.m_stack = [];
+    this.m_cache = [];
+    this.c_stack = 0;
+    this.valid = 0;
+    this.result = null;
+
+    if (init_mat !== undefined) {
+      this.m_stack[0] = init_mat;
+    } else {
+      this.setIdentity();
+    }
+
+    return this;
+  }; //clearStack
 
   Transform.prototype.setIdentity = function() {
     this.m_stack[this.c_stack] = this.getIdentity();
@@ -186,22 +206,6 @@
     this.c_stack--;
     return this;
   }; //popMatrix
-
-  Transform.prototype.clearStack = function(init_mat) {
-    this.m_stack = [];
-    this.m_cache = [];
-    this.c_stack = 0;
-    this.valid = 0;
-    this.result = null;
-
-    if (init_mat !== undefined) {
-      this.m_stack[0] = init_mat;
-    } else {
-      this.setIdentity();
-    }
-
-    return this;
-  }; //clearStack
 
   Transform.prototype.translate = function(x, y) {
     var m = this.getIdentity();
@@ -269,6 +273,8 @@
 
           gl2d.initShaders();
           gl2d.initBuffers();
+
+          // Append Canvas2D API features to the WebGL context
           gl2d.initCanvas2DAPI();
 
           gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
@@ -309,7 +315,8 @@
   // Shader Pool BitMasks, i.e. sMask = (shaderMask.texture+shaderMask.stroke)
   var shaderMask = {
     texture: 1,
-    crop: 2
+    crop: 2,
+    path: 4
   };
 
 
@@ -320,8 +327,8 @@
         "precision highp float;",
       "#endif",
 
-      "#define hasTexture "+((sMask&shaderMask.texture)?"1":"0"),
-      "#define hasCrop "+((sMask&shaderMask.crop)?"1":"0"),
+      "#define hasTexture " + ((sMask&shaderMask.texture) ? "1" : "0"),
+      "#define hasCrop " + ((sMask&shaderMask.crop) ? "1" : "0"),
 
       "varying vec4 vColor;",
       
@@ -336,7 +343,7 @@
       "void main(void) {",
         "#if hasTexture",
           "#if hasCrop",
-            "gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x*uCropSource.z,vTextureCoord.y*uCropSource.w)+uCropSource.xy);",
+            "gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x * uCropSource.z, vTextureCoord.y * uCropSource.w) + uCropSource.xy);",
           "#else",
             "gl_FragColor = texture2D(uSampler, vTextureCoord);",
           "#endif",
@@ -350,10 +357,12 @@
   };
 
   WebGL2D.prototype.getVertexShaderSource = function getVertexShaderSource(stackDepth,sMask) {
-    stackDepth = stackDepth || 1;
     var w = 2 / this.canvas.width, h = -2 / this.canvas.height;
+
+    stackDepth = stackDepth || 1;
+
     var vsSource = [
-      "#define hasTexture "+((sMask&shaderMask.texture)?"1":"0"),
+      "#define hasTexture " + ((sMask&shaderMask.texture) ? "1" : "0"),
       "attribute vec4 aVertexPosition;",
 
       "#if hasTexture",
@@ -365,11 +374,11 @@
 
       "varying vec4 vColor;",
       
-      "const mat4 pMatrix = mat4("+w+",0,0,0, 0,"+h+",0,0, 0,0,1.0,1.0, -1.0,1.0,0,0);",
+      "const mat4 pMatrix = mat4(" + w + ",0,0,0, 0," + h + ",0,0, 0,0,1.0,1.0, -1.0,1.0,0,0);",
 
       "mat3 crunchStack(void) {",
         "mat3 result = uTransforms[0];",
-        "for (int i=1; i<"+stackDepth+"; ++i) {",
+        "for (int i = 1; i < " + stackDepth + "; ++i) {",
           "result = uTransforms[i] * result;",
         "}",
         "return result;",
