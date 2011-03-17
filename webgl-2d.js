@@ -560,8 +560,24 @@
     }
 
     function saveDrawState() {
-      //drawStateStack.push(JSON.parse(JSON.stringify(drawState)));
-      drawStateStack.push(cloneObject(drawState));
+      var bakedDrawState = {
+        fillStyle:                [drawState.fillStyle[0],   drawState.fillStyle[1],   drawState.fillStyle[2],   drawState.fillStyle[3]],
+        strokeStyle:              [drawState.strokeStyle[0], drawState.strokeStyle[1], drawState.strokeStyle[2], drawState.strokeStyle[3]],
+        globalAlpha:              drawState.globalAlpha,
+        globalCompositeOperation: drawState.globalCompositeOperation,
+        lineCap:                  drawState.lineCap,
+        lineJoin:                 drawState.lineJoin,
+        lineWidth:                drawState.lineWidth,
+        miterLimit:               drawState.miterLimit,
+        shadowBlur:               drawState.shadowBlur,
+        shadowOffsetX:            drawState.shadowOffsetX,
+        shadowOffsetY:            drawState.shadowOffsetY,
+        textAlign:                drawState.textAlign,
+        font:                     drawState.font,
+        textBaseline:             drawState.textBaseline
+      };
+
+      drawStateStack.push(bakedDrawState);
     }
 
     function restoreDrawState() {
