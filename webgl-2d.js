@@ -531,7 +531,7 @@
         var colorInt = parseInt(match[1], 16);
         vec4 = [((colorInt & 0xFF0000) >> 16) / 255, ((colorInt & 0x00FF00) >> 8) / 255, (colorInt & 0x0000FF) / 255, 1.0];
       } else if ((match = reHex3Color.exec(value))) {
-        var hexString = [match[1], match[1], match[2], match[2], match[3], match[3]].join("");
+        var hexString = "#" + [match[1], match[1], match[2], match[2], match[3], match[3]].join("");
         vec4 = colorStringToVec4(hexString);
       } else {
         // Color keywords not yet implemented, ie "orange", return black
