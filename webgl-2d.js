@@ -513,7 +513,7 @@
     textCanvas.height = gl2d.canvas.height;
     var textCtx       = textCanvas.getContext("2d");
 
-    var reRGBAColor = /^rgb(a)?\(\s*(-?[\d]+)(%)?,\s*(-?[\d]+)(%)?,\s*(-?[\d]+)(%)?,?\s*(-?[\d\.]+)?\s*\)$/;
+    var reRGBAColor = /^rgb(a)?\(\s*(-?[\d]+)(%)?\s*,\s*(-?[\d]+)(%)?\s*,\s*(-?[\d]+)(%)?\s*,?\s*(-?[\d\.]+)?\s*\)$/;
     var reHex6Color = /^#([0-9A-Fa-f]{6})$/;
     var reHex3Color = /^#([0-9A-Fa-f])([0-9A-Fa-f])([0-9A-Fa-f])$/;
 
@@ -547,9 +547,11 @@
         vec4 = colorStringToVec4(hexString);
       } else if (value.toLowerCase() in colorKeywords) {
         vec4 = colorStringToVec4(colorKeywords[value.toLowerCase()]);
+      } else if (value.toLowerCase() === "transparent") {
+        vec4 = [0, 0, 0, 0]; 
       } else {
         // Color keywords not yet implemented, ie "orange", return hot pink
-        vec4 = [255, 0, 200, 1];
+        vec4 = false;
       }
 
       return vec4;
@@ -613,6 +615,7 @@
       gray:                 "#808080",
       green:                "#008000",
       greenyellow:          "#adff2f",
+      grey:                 "#808080",
       honeydew:             "#f0fff0",
       hotpink:              "#ff69b4",
       indianred:            "#cd5c5c",
@@ -751,7 +754,7 @@
     Object.defineProperty(gl, "fillStyle", {
       get: function() { return colorVecToString(drawState.fillStyle); },
       set: function(value) {
-        drawState.fillStyle = colorStringToVec4(value); 
+        drawState.fillStyle = colorStringToVec4(value) || drawState.fillStyle; 
       }
     });
 
@@ -760,7 +763,7 @@
     Object.defineProperty(gl, "strokeStyle", {
       get: function() { return colorVecToString(drawState.strokeStyle); },
       set: function(value) {
-        drawState.strokeStyle = colorStringToVec4(value); 
+        drawState.strokeStyle = colorStringToVec4(value) || drawStyle.strokeStyle; 
       }
     });
 
