@@ -569,6 +569,7 @@
         lineJoin:                 drawState.lineJoin,
         lineWidth:                drawState.lineWidth,
         miterLimit:               drawState.miterLimit,
+        shadowColor:              drawState.shadowColor,
         shadowBlur:               drawState.shadowBlur,
         shadowOffsetX:            drawState.shadowOffsetX,
         shadowOffsetY:            drawState.shadowOffsetY,
