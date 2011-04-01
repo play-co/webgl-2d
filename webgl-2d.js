@@ -513,7 +513,7 @@
     textCanvas.height = gl2d.canvas.height;
     var textCtx       = textCanvas.getContext("2d");
 
-    var reRGBAColor = /^rgb(a)?\(\s*([\d]+)(%)?,\s*([\d]+)(%)?,\s*([\d]+)(%)?,?\s*([\d\.]+)?\s*\)$/;
+    var reRGBAColor = /^rgb(a)?\(\s*(-?[\d]+)(%)?,\s*(-?[\d]+)(%)?,\s*(-?[\d]+)(%)?,?\s*(-?[\d\.]+)?\s*\)$/;
     var reHex6Color = /^#([0-9A-Fa-f]{6})$/;
     var reHex3Color = /^#([0-9A-Fa-f])([0-9A-Fa-f])([0-9A-Fa-f])$/;
 
@@ -523,8 +523,20 @@
 
       if ((match = reRGBAColor.exec(value))) {
         for (var i = 2; i < 8; i+=2) {
-          var channel = match[i];
-          vec4.push(match[i+1] ? channel / 100 : channel / 255); 
+          var channel = match[i], isPercent = match[i+1];
+
+          // Clamp and normalize values
+          if (isPercent) {
+            channel = channel > 100 ? 100 : channel;
+            channel = channel <   0 ?   0 : channel;
+            channel /= 100;
+          } else {
+            channel = channel > 255 ? 255 : channel;
+            channel = channel <   0 ?   0 : channel;
+            channel /= 255;
+          }
+
+          vec4.push(channel); 
         }
         vec4.push(parseFloat(match[1] && match[8] !== undefined ? match[8] : 1.0));
       } else if ((match = reHex6Color.exec(value))) {
@@ -534,8 +546,8 @@
         var hexString = "#" + [match[1], match[1], match[2], match[2], match[3], match[3]].join("");
         vec4 = colorStringToVec4(hexString);
       } else {
-        // Color keywords not yet implemented, ie "orange", return black
-        vec4 = [0, 0, 0, 1];
+        // Color keywords not yet implemented, ie "orange", return hot pink
+        vec4 = [255, 0, 200, 1];
       }
 
       return vec4;
