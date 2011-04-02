@@ -1,15 +1,15 @@
-/** 
+/**
  *  WebGL-2D.js - HTML5 Canvas2D API in a WebGL context
- * 
+ *
  *  Created by Corban Brook <corbanbrook@gmail.com> on 2011-03-02.
  *  Amended to by Bobby Richter <secretrobotron@gmail.com> on 2011-03-03
  *  CubicVR.js by Charles Cliffe <cj@cubicproductions.com> on 2011-03-03
  *
  */
 
-/*  
+/*
  *  Copyright (c) 2011 Corban Brook
- * 
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining
  *  a copy of this software and associated documentation files (the
  *  "Software"), to deal in the Software without restriction, including
@@ -17,10 +17,10 @@
  *  distribute, sublicense, and/or sell copies of the Software, and to
  *  permit persons to whom the Software is furnished to do so, subject to
  *  the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be
  *  included in all copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  *  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  *  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -33,9 +33,9 @@
 
 /**
  * Usage:
- * 
+ *
  *    var cvs = document.getElementById("myCanvas");
- * 
+ *
  *    WebGL2D.enable(cvs); // adds "webgl-2d" to cvs
  *
  *    cvs.getContext("webgl-2d");
@@ -100,7 +100,7 @@
       }
       return (Math.abs(a[0] - b[0]) < epsilon && Math.abs(a[1] - b[1]) < epsilon && Math.abs(a[2] - b[2]) < epsilon);
     }
-  }; 
+  };
 
   var mat3 = {
     identity: [1.0, 0.0, 0.0,
@@ -110,7 +110,7 @@
     multiply: function (m1, m2) {
       var m10 = m1[0], m11 = m1[1], m12 = m1[2], m13 = m1[3], m14 = m1[4], m15 = m1[5], m16 = m1[6], m17 = m1[7], m18 = m1[8],
           m20 = m2[0], m21 = m2[1], m22 = m2[2], m23 = m2[3], m24 = m2[4], m25 = m2[5], m26 = m2[6], m27 = m2[7], m28 = m2[8];
-          
+
       m2[0] = m20 * m10 + m23 * m11 + m26 * m12;
       m2[1] = m21 * m10 + m24 * m11 + m27 * m12;
       m2[2] = m22 * m10 + m25 * m11 + m28 * m12;
@@ -167,8 +167,8 @@
   };
 
   Transform.prototype.getIdentity = function() {
-    return [1.0, 0.0, 0.0, 
-            0.0, 1.0, 0.0, 
+    return [1.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
             0.0, 0.0, 1.0];
   };
 
@@ -176,20 +176,20 @@
     if (!this.c_stack) {
       return this.m_stack[0];
     }
-    
+
     var m = mat3.identity;
-    
+
     if (this.valid > this.c_stack-1) { this.valid = this.c_stack-1; }
-                
+
     for (var i = this.valid; i < this.c_stack+1; i++) {
       m = mat3.multiply(this.m_stack[i],m);
       this.m_cache[i] = m;
     }
-      
+
     this.valid = this.c_stack-1;
-      
+
     this.result = this.m_cache[this.c_stack];
-    
+
     return this.result;
   };
 
@@ -265,7 +265,7 @@
     this.transform      = new Transform();
     this.shaderPool     = [];
     this.maxTextureSize = undefined;
-    
+
     // Save a reference to the WebGL2D instance on the canvas object
     canvas.gl2d         = this;
 
@@ -273,7 +273,7 @@
     canvas.$getContext  = canvas.getContext;
 
     // Override getContext function with "webgl-2d" enabled version
-    canvas.getContext = (function(gl2d) { 
+    canvas.getContext = (function(gl2d) {
       return function(context) {
         if ((gl2d.options.force || context === "webgl-2d") && !(canvas.width === 0 || canvas.height === 0)) {
           if (gl2d.gl) { return gl2d.gl; }
@@ -320,7 +320,7 @@
     return canvas.gl2d || new WebGL2D(canvas, options);
   };
 
-  
+
   // Shader Pool BitMasks, i.e. sMask = (shaderMask.texture+shaderMask.stroke)
   var shaderMask = {
     texture: 1,
@@ -340,7 +340,7 @@
       "#define hasCrop " + ((sMask&shaderMask.crop) ? "1" : "0"),
 
       "varying vec4 vColor;",
-      
+
       "#if hasTexture",
         "varying vec2 vTextureCoord;",
         "uniform sampler2D uSampler;",
@@ -348,7 +348,7 @@
           "uniform vec4 uCropSource;",
         "#endif",
       "#endif",
-      
+
       "void main(void) {",
         "#if hasTexture",
           "#if hasCrop",
@@ -382,7 +382,7 @@
       "uniform mat3 uTransforms[" + stackDepth + "];",
 
       "varying vec4 vColor;",
-      
+
       "const mat4 pMatrix = mat4(" + w + ",0,0,0, 0," + h + ",0,0, 0,0,1.0,1.0, -1.0,1.0,0,0);",
 
       "mat3 crunchStack(void) {",
@@ -446,11 +446,11 @@
       gl.linkProgram(shaderProgram);
 
       if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        throw "Could not initialise shaders.";        
+        throw "Could not initialise shaders.";
       }
 
       gl.useProgram(shaderProgram);
-  
+
       shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
       gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
@@ -475,9 +475,9 @@
 
   // 2D Vertices and Texture UV coords
   var rectVerts = new Float32Array([
-      0,0, 0,0, 
-      0,1, 0,1, 
-      1,1, 1,1, 
+      0,0, 0,0,
+      0,1, 0,1,
+      1,1, 1,1,
       1,0, 1,0
   ]);
 
@@ -498,7 +498,7 @@
   WebGL2D.instances = [];
 
   WebGL2D.prototype.postInit = function() {
-    WebGL2D.instances.push(this);    
+    WebGL2D.instances.push(this);
   };
 
   // Extends gl context with Canvas2D API
@@ -514,47 +514,99 @@
     var textCtx       = textCanvas.getContext("2d");
 
     var reRGBAColor = /^rgb(a)?\(\s*(-?[\d]+)(%)?\s*,\s*(-?[\d]+)(%)?\s*,\s*(-?[\d]+)(%)?\s*,?\s*(-?[\d\.]+)?\s*\)$/;
+    var reHSLAColor = /^hsl(a)?\(\s*(-?[\d\.]+)\s*,\s*(-?[\d\.]+)%\s*,\s*(-?[\d\.]+)%\s*,?\s*(-?[\d\.]+)?\s*\)$/;
     var reHex6Color = /^#([0-9A-Fa-f]{6})$/;
     var reHex3Color = /^#([0-9A-Fa-f])([0-9A-Fa-f])([0-9A-Fa-f])$/;
 
+    function HSLAToRGBA(h, s, l, a) {
+      var r, g, b, m1, m2;
+
+      // Clamp and Normalize values
+      h = (((h % 360) + 360) % 360) / 360;
+      s = s > 100 ? 1 : s / 100;
+      s = s <   0 ? 0 : s;
+      l = l > 100 ? 1 : l / 100;
+      l = l <   0 ? 0 : l;
+
+      m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
+      m1 = l * 2 - m2;
+
+      function getHue(value) {
+        var hue;
+
+        if (value * 6 < 1) {
+          hue = m1 + (m2 - m1) * value * 6;
+        } else if (value * 2 < 1) {
+          hue = m2;
+        } else if (value * 3 < 2) {
+          hue = m1 + (m2 - m1) * (2/3 - value) * 6;
+        } else {
+          hue = m1;
+        }
+
+        return hue;
+      }
+
+      r = getHue(h + 1/3);
+      g = getHue(h);
+      b = getHue(h - 1/3);
+
+      return [r, g, b, a];
+    }
+
+
     // Converts rgb(a) color string to gl color vector
     function colorStringToVec4(value) {
-      var vec4 = [], match;
+      var result = [], match, channel, isPercent, hasAlpha, alphaChannel, sameType;
 
       if ((match = reRGBAColor.exec(value))) {
+        hasAlpha = match[1], alphaChannel = parseFloat(match[8]);
+
+        if ((hasAlpha && isNaN(alphaChannel)) || (!hasAlpha && !isNaN(alphaChannel))) {
+          return false;
+        }
+
+        sameType = match[3];
+
         for (var i = 2; i < 8; i+=2) {
-          var channel = match[i], isPercent = match[i+1];
+          channel = match[i], isPercent = match[i+1];
+
+          if (isPercent !== sameType) {
+            return false;
+          }
 
           // Clamp and normalize values
           if (isPercent) {
-            channel = channel > 100 ? 100 : channel;
-            channel = channel <   0 ?   0 : channel;
-            channel /= 100;
+            channel = channel > 100 ? 1 : channel / 100;
+            channel = channel <   0 ? 0 : channel;
           } else {
-            channel = channel > 255 ? 255 : channel;
-            channel = channel <   0 ?   0 : channel;
-            channel /= 255;
+            channel = channel > 255 ? 1 : channel / 255;
+            channel = channel <   0 ? 0 : channel;
           }
 
-          vec4.push(channel); 
+          result.push(channel);
         }
-        vec4.push(parseFloat(match[1] && match[8] !== undefined ? match[8] : 1.0));
+
+        result.push(hasAlpha ? alphaChannel : 1.0);
+      } else if ((match = reHSLAColor.exec(value))) {
+        hasAlpha = match[1], alphaChannel = parseFloat(match[5]);
+        result = HSLAToRGBA(match[2], match[3], match[4], parseFloat(hasAlpha && alphaChannel ? alphaChannel : 1.0));
       } else if ((match = reHex6Color.exec(value))) {
         var colorInt = parseInt(match[1], 16);
-        vec4 = [((colorInt & 0xFF0000) >> 16) / 255, ((colorInt & 0x00FF00) >> 8) / 255, (colorInt & 0x0000FF) / 255, 1.0];
+        result = [((colorInt & 0xFF0000) >> 16) / 255, ((colorInt & 0x00FF00) >> 8) / 255, (colorInt & 0x0000FF) / 255, 1.0];
       } else if ((match = reHex3Color.exec(value))) {
         var hexString = "#" + [match[1], match[1], match[2], match[2], match[3], match[3]].join("");
-        vec4 = colorStringToVec4(hexString);
+        result = colorStringToVec4(hexString);
       } else if (value.toLowerCase() in colorKeywords) {
-        vec4 = colorStringToVec4(colorKeywords[value.toLowerCase()]);
+        result = colorStringToVec4(colorKeywords[value.toLowerCase()]);
       } else if (value.toLowerCase() === "transparent") {
-        vec4 = [0, 0, 0, 0]; 
+        result = [0, 0, 0, 0];
       } else {
         // Color keywords not yet implemented, ie "orange", return hot pink
-        vec4 = false;
+        return false;
       }
 
-      return vec4;
+      return result;
     }
 
     function colorVecToString(vec4) {
@@ -754,7 +806,7 @@
     Object.defineProperty(gl, "fillStyle", {
       get: function() { return colorVecToString(drawState.fillStyle); },
       set: function(value) {
-        drawState.fillStyle = colorStringToVec4(value) || drawState.fillStyle; 
+        drawState.fillStyle = colorStringToVec4(value) || drawState.fillStyle;
       }
     });
 
@@ -763,7 +815,7 @@
     Object.defineProperty(gl, "strokeStyle", {
       get: function() { return colorVecToString(drawState.strokeStyle); },
       set: function(value) {
-        drawState.strokeStyle = colorStringToVec4(value) || drawStyle.strokeStyle; 
+        drawState.strokeStyle = colorStringToVec4(value) || drawStyle.strokeStyle;
       }
     });
 
@@ -775,11 +827,11 @@
     Object.defineProperty(gl, "lineWidth", {
       get: function() { return drawState.lineWidth; },
       set: function(value) {
-        gl.$lineWidth(value); 
+        gl.$lineWidth(value);
         drawState.lineWidth = value;
       }
     });
-    
+
     // Currently unsupported attributes and their default values
     drawState.lineCap = "butt";
 
@@ -789,7 +841,7 @@
         drawState.lineCap = value;
       }
     });
-    
+
     drawState.lineJoin = "miter";
 
     Object.defineProperty(gl, "lineJoin", {
@@ -883,7 +935,7 @@
     });
 
     // This attribute will need to set the gl.blendFunc mode
-    drawState.globalCompositeOperation = "source-over"; 
+    drawState.globalCompositeOperation = "source-over";
 
     Object.defineProperty(gl, "globalCompositeOperation", {
       get: function() { return drawState.globalCompositeOperation; },
@@ -902,9 +954,9 @@
       gl.drawImage(textCanvas, 0, 0);
       */
     };
-    
+
     gl.strokeText = function strokeText() {};
-    
+
     gl.measureText = function measureText() { return 1; };
 
     var tempCanvas = document.createElement('canvas');
@@ -922,7 +974,7 @@
 
     gl.translate = function translate(x, y) {
       gl2d.transform.translate(x, y);
-    }; 
+    };
 
     gl.rotate = function rotate(a) {
       gl2d.transform.rotate(a);
@@ -997,7 +1049,7 @@
       sendTransformStack(shaderProgram);
 
       gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
-      
+
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
       transform.popMatrix();
@@ -1087,7 +1139,7 @@
       var shaderProgram = gl2d.initShaders(transform.c_stack + 2,0);
 
       var subPath = subPaths[index];
-      var verts = subPath.verts;      
+      var verts = subPath.verts;
 
       gl.bindBuffer(gl.ARRAY_BUFFER, pathVertexPositionBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
@@ -1101,7 +1153,7 @@
       gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
 
       gl.drawArrays(gl.TRIANGLE_FAN, 0, verts.length/4);
-      
+
       transform.popMatrix();
     }
 
@@ -1116,7 +1168,7 @@
       var shaderProgram = gl2d.initShaders(transform.c_stack + 2,0);
 
       var subPath = subPaths[index];
-      var verts = subPath.verts;      
+      var verts = subPath.verts;
 
       gl.bindBuffer(gl.ARRAY_BUFFER, pathVertexPositionBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
@@ -1134,7 +1186,7 @@
       } else {
         gl.drawArrays(gl.LINE_STRIP, 0, verts.length/4);
       }
-      
+
       transform.popMatrix();
     }
 
@@ -1150,7 +1202,7 @@
 
     gl.drawFocusRing = function drawFocusRing() {};
 
-    
+
 
     var imageCache = [], textureCache = [];
 
@@ -1158,7 +1210,7 @@
       this.obj   = gl.createTexture();
       this.index = textureCache.push(this);
 
-      imageCache.push(image); 
+      imageCache.push(image);
 
       // we may wish to consider tiling large images like this instead of scaling and
       // adjust appropriately (flip to next texture source and tile offset) when drawing
@@ -1181,9 +1233,9 @@
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-      // Enable Mip mapping on power-of-2 textures 
+      // Enable Mip mapping on power-of-2 textures
       if (isPOT(image.width) && isPOT(image.height)) {
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); 
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         gl.generateMipmap(gl.TEXTURE_2D);
       } else {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -1205,15 +1257,15 @@
       if (arguments.length === 3) {
         transform.translate(a, b);
         transform.scale(image.width, image.height);
-      } 
+      }
 
       //drawImage(image, dx, dy, dw, dh)
       else if (arguments.length === 5) {
         transform.translate(a, b);
         transform.scale(c, d);
-      } 
+      }
 
-      //drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh) 
+      //drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
       else if (arguments.length === 9) {
         transform.translate(e, f);
         transform.scale(g, h);
@@ -1226,13 +1278,13 @@
       var texture, cacheIndex = imageCache.indexOf(image);
 
       if (cacheIndex !== -1) {
-        texture = textureCache[cacheIndex];   
+        texture = textureCache[cacheIndex];
       } else {
-        texture = new Texture(image);  
+        texture = new Texture(image);
       }
 
       if (doCrop) {
-        gl.uniform4f(shaderProgram.uCropSource, a/image.width, b/image.height, c/image.width, d/image.height);        
+        gl.uniform4f(shaderProgram.uCropSource, a/image.width, b/image.height, c/image.width, d/image.height);
       }
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
