@@ -38,7 +38,9 @@
  *
  *    WebGL2D.enable(cvs); // adds "webgl-2d" to cvs
  *
- *    cvs.getContext("webgl-2d");
+ *    var ctx = cvs.getContext("webgl-2d"); // Attempt to get webgl context
+ *
+ *    ctx.isWebGL // Detect whether WebGL-2D is active on this context.
  *
  */
 
@@ -280,6 +282,11 @@
 
           var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
 
+          // If we failed to get a WebGL context, return a normal 2D context instead.
+          if ((typeof (gl) === "undefined") || (gl === null)) {
+            return gl2d.canvas.$getContext("2d");
+          }
+
           gl2d.initShaders();
           gl2d.initBuffers();
 
@@ -301,7 +308,7 @@
 
           // Blending options
           gl.enable(gl.BLEND);
-          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+          gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
           gl2d.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
@@ -351,10 +358,11 @@
 
       "void main(void) {",
         "#if hasTexture",
+          "vec4 mulColor = vec4(vColor.r * vColor.a, vColor.g * vColor.a, vColor.b * vColor.a, vColor.a);",
           "#if hasCrop",
-            "gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x * uCropSource.z, vTextureCoord.y * uCropSource.w) + uCropSource.xy);",
+            "gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.x * uCropSource.z, vTextureCoord.y * uCropSource.w) + uCropSource.xy) * mulColor;",
           "#else",
-            "gl_FragColor = texture2D(uSampler, vTextureCoord);",
+            "gl_FragColor = texture2D(uSampler, vTextureCoord) * mulColor;",
           "#endif",
         "#else",
           "gl_FragColor = vColor;",
@@ -474,12 +482,7 @@
   var pathVertexColorBuffer;
 
   // 2D Vertices and Texture UV coords
-  var rectVerts = new Float32Array([
-      0,0, 0,0,
-      0,1, 0,1,
-      1,1, 1,1,
-      1,0, 1,0
-  ]);
+  var rectVerts;
 
   WebGL2D.prototype.initBuffers = function initBuffers() {
     var gl = this.gl;
@@ -489,6 +492,13 @@
 
     pathVertexPositionBuffer  = gl.createBuffer();
     pathVertexColorBuffer     = gl.createBuffer();
+
+    rectVerts = new Float32Array([
+      0,0, 0,0,
+      0,1, 0,1,
+      1,1, 1,1,
+      1,0, 1,0
+    ]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
@@ -1034,6 +1044,43 @@
       gl.transform.apply(this, arguments);
     };
 
+    var warnedBlendModes = {};
+
+    var updateBlendMode = function () {
+      switch (drawState.globalCompositeOperation) {
+        case "source-over":
+          gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+          break;
+
+        case "lighter":
+          gl.blendFunc(gl.ONE, gl.ONE);
+          break;
+
+        case "copy":
+          gl.blendFunc(gl.ONE, gl.ZERO);
+          break;
+
+        default:
+          gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+          if (!warnedBlendModes[drawState.globalCompositeOperation]) {
+            console.warn("Blend mode '" + drawState.globalCompositeOperation + "' not implemented by webgl-2d.");
+            warnedBlendModes[drawState.globalCompositeOperation] = true;
+          };
+          break;
+      }
+    };
+
+    // Since we're using premultiplied alpha we need to premultiply the color values.
+    var updateColorPremultiplied = function (shaderProgram, colorUnpremultiplied) {
+      gl.uniform4f(
+        shaderProgram.uColor, 
+        colorUnpremultiplied[0] * colorUnpremultiplied[3], 
+        colorUnpremultiplied[1] * colorUnpremultiplied[3], 
+        colorUnpremultiplied[2] * colorUnpremultiplied[3], 
+        colorUnpremultiplied[3]
+      );
+    };
+
     gl.fillRect = function fillRect(x, y, width, height) {
       var transform = gl2d.transform;
       var shaderProgram = gl2d.initShaders(transform.c_stack+2,0);
@@ -1048,7 +1095,8 @@
 
       sendTransformStack(shaderProgram);
 
-      gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
+      updateBlendMode();
+      updateColorPremultiplied(shaderProgram, drawState.fillStyle);
 
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
@@ -1069,7 +1117,8 @@
 
       sendTransformStack(shaderProgram);
 
-      gl.uniform4f(shaderProgram.uColor, drawState.strokeStyle[0], drawState.strokeStyle[1], drawState.strokeStyle[2], drawState.strokeStyle[3]);
+      updateBlendMode();
+      updateColorPremultiplied(shaderProgram, drawState.strokeStyle);
 
       gl.drawArrays(gl.LINE_LOOP, 0, 4);
 
@@ -1150,7 +1199,8 @@
 
       sendTransformStack(shaderProgram);
 
-      gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
+      updateBlendMode();
+      updateColorPremultiplied(shaderProgram, drawState.fillStyle);
 
       gl.drawArrays(gl.TRIANGLE_FAN, 0, verts.length/4);
 
@@ -1179,7 +1229,8 @@
 
       sendTransformStack(shaderProgram);
 
-      gl.uniform4f(shaderProgram.uColor, drawState.strokeStyle[0], drawState.strokeStyle[1], drawState.strokeStyle[2], drawState.strokeStyle[3]);
+      updateBlendMode();
+      updateColorPremultiplied(shaderProgram, drawState.strokeStyle);
 
       if (subPath.closed) {
         gl.drawArrays(gl.LINE_LOOP, 0, verts.length/4);
@@ -1227,8 +1278,49 @@
         image = canvas;
       }
 
+      this.updateCachedImage(image);
+    };
+
+    // Uploads image pixels to the texture from the image.
+    Texture.prototype.updateCachedImage = function (image) {
       gl.bindTexture(gl.TEXTURE_2D, this.obj);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+      // Premultiply the image pixels
+      var imagePixels;
+      if (image.tagName.toLowerCase() === "canvas") {
+        imagePixels = image.getContext("2d").getImageData(0, 0, image.width, image.height);
+      } else {
+        tempCanvas.width = image.width;
+        tempCanvas.height = image.height;
+        tempCtx.clearRect(0, 0, image.width, image.height);
+        tempCtx.globalCompositeOperation = "copy";
+        tempCtx.drawImage(image, 0, 0);
+
+        imagePixels = tempCtx.getImageData(0, 0, image.width, image.height);
+        tempCanvas.width = tempCanvas.height = 1;
+      }
+      var imagePixelData = imagePixels.data;
+
+      // WebGL and canvas don't like to touch each other because the spec is dumb
+      var l = imagePixelData.length;
+      var premultipliedData = new Uint8Array(l);
+
+      for (var i = 0; i < l; i += 4) {
+        var a = imagePixelData[i + 3];
+        premultipliedData[i + 3] = a;
+
+        a /= 255;
+        premultipliedData[i + 0] = a * imagePixelData[i + 0];
+        premultipliedData[i + 1] = a * imagePixelData[i + 1];
+        premultipliedData[i + 2] = a * imagePixelData[i + 2];
+      }
+
+      gl.texImage2D(
+        gl.TEXTURE_2D, 0, gl.RGBA,
+        image.width, image.height, 0, gl.RGBA, 
+        gl.UNSIGNED_BYTE, premultipliedData
+      );
+
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -1243,7 +1335,7 @@
 
       // Unbind texture
       gl.bindTexture(gl.TEXTURE_2D, null);
-    }
+    };
 
     gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
       var transform = gl2d.transform;
@@ -1283,6 +1375,10 @@
         texture = new Texture(image);
       }
 
+      updateBlendMode();
+
+      gl.uniform4f(shaderProgram.uColor, 1, 1, 1, drawState.globalAlpha);
+
       if (doCrop) {
         gl.uniform4f(shaderProgram.uCropSource, a/image.width, b/image.height, c/image.width, d/image.height);
       }
@@ -1300,6 +1396,14 @@
 
       transform.popMatrix();
     };
+
+    // This enables the user to detect whether they got a webgl-2d context or a 2d context.
+    Object.defineProperty(gl, "isWebGL", {
+      configurable: false,
+      enumerable: true,
+      writable: false,
+      value: true
+    });
   };
 
 }(Math));
