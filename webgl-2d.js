@@ -300,6 +300,7 @@
           //gl.depthFunc(gl.LEQUAL);
 
           // Blending options
+          // See http://stackoverflow.com/questions/11521035/blending-with-html-background-in-webgl
           gl.enable(gl.BLEND);
           gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
