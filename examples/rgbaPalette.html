@@ -24,19 +24,11 @@ var j = 10;
 while (--j > 0) { 
   var i = 20;
   while (--i > 0) {
-    var color = "hsla(" + (360/i) + "," + (100/j) + "%," + (60-j)+ "%,0.3)";
-    ctx.lineWidth = 10;
-    webgl.lineWidth = 10;
-    ctx.strokeStyle = color;
-    webgl.strokeStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(30*(i-1),20*(j-1));
-    ctx.lineTo(30*(i-1)+20,20*(j-1)+15);
-    ctx.stroke();
-    webgl.beginPath();
-    webgl.moveTo(30*(i-1),20*(j-1))
-    webgl.lineTo(30*(i-1)+20,20*(j-1)+15)
-    webgl.stroke();
+    var color = "rgba(" + Math.round(255/i) + "," + Math.round(255/j) + ",0,0.6)";
+    ctx.fillStyle = color;
+    webgl.fillStyle = color;
+    ctx.fillRect(30*(i-1),20*(j-1),20,15);
+    webgl.fillRect(30*(i-1),20*(j-1),20,15);
   }
 }
  

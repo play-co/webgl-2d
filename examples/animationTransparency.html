@@ -23,10 +23,12 @@ var t = 0;
 function render() {
   t++;
   var j = 10;
+  ctx.clearRect(0,0,width,height);
+  webgl.clearRect(0,0,width,height);
   while (--j > 0) { 
     var i = 20;
     while (--i > 0) {
-      var color = "hsla(" + (360/i+t) + "," + (100/j) + "%," + (60-j)+ "%,0.5)";
+      var color = "hsla(" + (360/i+t) + "," + (100/j) + "%," + (60-j)+ "%,0.6)";
       ctx.fillStyle = color;
       webgl.fillStyle = color;
       ctx.fillRect(30*(i-1),20*(j-1),20,15);
