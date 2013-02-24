@@ -24,7 +24,7 @@ var j = 10;
 while (--j > 0) { 
   var i = 20;
   while (--i > 0) {
-    var color = "hsl(" + (360/i) + "," + (100/j) + "%," + (60-j)+ "%)";
+    var color = "hsl(" + (360/i) + "," + (100/j) + "%,50%)";
     ctx.fillStyle = color;
     webgl.fillStyle = color;
     ctx.fillRect(30*(i-1),20*(j-1),20,15);
