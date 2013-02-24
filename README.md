@@ -14,8 +14,6 @@ WebGL-2D is a proof of concept and attempts to ascertain performance improvement
 
 It should allow _most_ Canvas2D applications to be switched to a WebGL context.
 
-Check out a [LIVE DEMO!](http://weare.buildingsky.net/webgl-2d/example.html)
-
 ![20110304-qfkhgf9hjin5uk3we9rmgpwtf8.jpg](https://img.skitch.com/20110304-qfkhgf9hjin5uk3we9rmgpwtf8.jpg)
 
 
