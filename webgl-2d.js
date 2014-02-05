@@ -42,7 +42,7 @@
  *
  */
 
-(function(Math, undefined) {
+(function(Math, undef) {
 
   // Vector & Matrix libraries from CubicVR.js
   var M_PI = 3.1415926535897932384626433832795028841968;
@@ -92,10 +92,10 @@
 
     equal: function(a, b) {
       var epsilon = 0.0000001;
-      if ((a === undefined) && (b === undefined)) {
+      if ((a === undef) && (b === undef)) {
         return true;
       }
-      if ((a === undefined) || (b === undefined)) {
+      if ((a === undef) || (b === undef)) {
         return false;
       }
       return (Math.abs(a[0] - b[0]) < epsilon && Math.abs(a[1] - b[1]) < epsilon && Math.abs(a[2] - b[2]) < epsilon);
@@ -152,7 +152,7 @@
       this.m_stack[i] = this.getIdentity();
     }
 
-    if (init_mat !== undefined) {
+    if (init_mat !== undef) {
       this.m_stack[0] = init_mat;
     } else {
       this.setIdentity();
@@ -258,13 +258,13 @@
   var WebGL2D = this.WebGL2D = function WebGL2D(canvas, options) {
     this.canvas         = canvas;
     this.options        = options || {};
-    this.gl             = undefined;
-    this.fs             = undefined;
-    this.vs             = undefined;
-    this.shaderProgram  = undefined;
+    this.gl             = undef;
+    this.fs             = undef;
+    this.vs             = undef;
+    this.shaderProgram  = undef;
     this.transform      = new Transform();
     this.shaderPool     = [];
-    this.maxTextureSize = undefined;
+    this.maxTextureSize = undef;
 
     // Save a reference to the WebGL2D instance on the canvas object
     canvas.gl2d         = this;
@@ -518,7 +518,7 @@
     var reHex6Color = /^#([0-9A-Fa-f]{6})$/;
     var reHex3Color = /^#([0-9A-Fa-f])([0-9A-Fa-f])([0-9A-Fa-f])$/;
 
-    function HSLAToRGBA(h, s, l, a) {
+    function hslaToRgba(h, s, l, a) {
       var r, g, b, m1, m2;
 
       // Clamp and Normalize values
@@ -552,65 +552,6 @@
       b = getHue(h - 1/3);
 
       return [r, g, b, a];
-    }
-
-
-    // Converts rgb(a) color string to gl color vector
-    function colorStringToVec4(value) {
-      var result = [], match, channel, isPercent, hasAlpha, alphaChannel, sameType;
-
-      if ((match = reRGBAColor.exec(value))) {
-        hasAlpha = match[1], alphaChannel = parseFloat(match[8]);
-
-        if ((hasAlpha && isNaN(alphaChannel)) || (!hasAlpha && !isNaN(alphaChannel))) {
-          return false;
-        }
-
-        sameType = match[3];
-
-        for (var i = 2; i < 8; i+=2) {
-          channel = match[i], isPercent = match[i+1];
-
-          if (isPercent !== sameType) {
-            return false;
-          }
-
-          // Clamp and normalize values
-          if (isPercent) {
-            channel = channel > 100 ? 1 : channel / 100;
-            channel = channel <   0 ? 0 : channel;
-          } else {
-            channel = channel > 255 ? 1 : channel / 255;
-            channel = channel <   0 ? 0 : channel;
-          }
-
-          result.push(channel);
-        }
-
-        result.push(hasAlpha ? alphaChannel : 1.0);
-      } else if ((match = reHSLAColor.exec(value))) {
-        hasAlpha = match[1], alphaChannel = parseFloat(match[5]);
-        result = HSLAToRGBA(match[2], match[3], match[4], parseFloat(hasAlpha && alphaChannel ? alphaChannel : 1.0));
-      } else if ((match = reHex6Color.exec(value))) {
-        var colorInt = parseInt(match[1], 16);
-        result = [((colorInt & 0xFF0000) >> 16) / 255, ((colorInt & 0x00FF00) >> 8) / 255, (colorInt & 0x0000FF) / 255, 1.0];
-      } else if ((match = reHex3Color.exec(value))) {
-        var hexString = "#" + [match[1], match[1], match[2], match[2], match[3], match[3]].join("");
-        result = colorStringToVec4(hexString);
-      } else if (value.toLowerCase() in colorKeywords) {
-        result = colorStringToVec4(colorKeywords[value.toLowerCase()]);
-      } else if (value.toLowerCase() === "transparent") {
-        result = [0, 0, 0, 0];
-      } else {
-        // Color keywords not yet implemented, ie "orange", return hot pink
-        return false;
-      }
-
-      return result;
-    }
-
-    function colorVecToString(vec4) {
-      return "rgba(" + (vec4[0] * 255) + ", " + (vec4[1] * 255) + ", " + (vec4[2] * 255) + ", " + parseFloat(vec4[3]) + ")";
     }
 
     var colorKeywords = {
@@ -757,6 +698,67 @@
       yellowgreen:          "#9acd32"
     };
 
+    // Converts rgb(a) color string to gl color vector
+    function colorStringToVec4(value) {
+      var result = [], match, channel, isPercent, hasAlpha, alphaChannel, sameType;
+
+      if (!!(match = reRGBAColor.exec(value))) {
+        hasAlpha = match[1];
+        alphaChannel = parseFloat(match[8]);
+
+        if ((hasAlpha && isNaN(alphaChannel)) || (!hasAlpha && !isNaN(alphaChannel))) {
+          return false;
+        }
+
+        sameType = match[3];
+
+        for (var i = 2; i < 8; i+=2) {
+          channel = match[i];
+          isPercent = match[i+1];
+
+          if (isPercent !== sameType) {
+            return false;
+          }
+
+          // Clamp and normalize values
+          if (isPercent) {
+            channel = channel > 100 ? 1 : channel / 100;
+            channel = channel <   0 ? 0 : channel;
+          } else {
+            channel = channel > 255 ? 1 : channel / 255;
+            channel = channel <   0 ? 0 : channel;
+          }
+
+          result.push(channel);
+        }
+
+        result.push(hasAlpha ? alphaChannel : 1.0);
+      } else if (!!(match = reHSLAColor.exec(value))) {
+        hasAlpha = match[1];
+        alphaChannel = parseFloat(match[5]);
+        result = hslaToRgba(match[2], match[3], match[4], parseFloat(hasAlpha && alphaChannel ? alphaChannel : 1.0));
+      } else if (!!(match = reHex6Color.exec(value))) {
+        var colorInt = parseInt(match[1], 16);
+        result = [((colorInt & 0xFF0000) >> 16) / 255, ((colorInt & 0x00FF00) >> 8) / 255, (colorInt & 0x0000FF) / 255, 1.0];
+      } else if (!!(match = reHex3Color.exec(value))) {
+        var hexString = "#" + [match[1], match[1], match[2], match[2], match[3], match[3]].join("");
+        result = colorStringToVec4(hexString);
+      } else if (value.toLowerCase() in colorKeywords) {
+        result = colorStringToVec4(colorKeywords[value.toLowerCase()]);
+      } else if (value.toLowerCase() === "transparent") {
+        result = [0, 0, 0, 0];
+      } else {
+        // Color keywords not yet implemented, ie "orange", return hot pink
+        return false;
+      }
+
+      return result;
+    }
+
+    function colorVecToString(vec4) {
+      return "rgba(" + (vec4[0] * 255) + ", " + (vec4[1] * 255) + ", " + (vec4[2] * 255) + ", " + parseFloat(vec4[3]) + ")";
+    }
+
     // Maintain drawing state params during gl.save and gl.restore. see saveDrawState() and restoreDrawState()
     var drawState = {}, drawStateStack = [];
 
@@ -815,7 +817,7 @@
     Object.defineProperty(gl, "strokeStyle", {
       get: function() { return colorVecToString(drawState.strokeStyle); },
       set: function(value) {
-        drawState.strokeStyle = colorStringToVec4(value) || drawStyle.strokeStyle;
+        drawState.strokeStyle = colorStringToVec4(value) || drawState.strokeStyle;
       }
     });
 
