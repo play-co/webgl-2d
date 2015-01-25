@@ -42,7 +42,22 @@
  *
  */
 
-(function(Math, undefined) {
+
+// if the module has no dependencies, the above pattern can be simplified to
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else {
+        // Browser globals (root is window)
+        root.returnExports = factory();
+  }
+}(this, function (undefined) {
 
   // Vector & Matrix libraries from CubicVR.js
   var M_PI = 3.1415926535897932384626433832795028841968;
@@ -1302,4 +1317,6 @@
     };
   };
 
-}(Math));
+  // return a function as the exported value
+  return WebGL2D;
+}));
