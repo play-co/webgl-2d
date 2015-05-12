@@ -464,12 +464,6 @@
     } //if
   };
 
-  var rectVertexPositionBuffer;
-  var rectVertexColorBuffer;
-
-  var pathVertexPositionBuffer;
-  var pathVertexColorBuffer;
-
   // 2D Vertices and Texture UV coords
   var rectVerts = new Float32Array([
       0,0, 0,0,
@@ -481,13 +475,13 @@
   WebGL2D.prototype.initBuffers = function initBuffers() {
     var gl = this.gl;
 
-    rectVertexPositionBuffer  = gl.createBuffer();
-    rectVertexColorBuffer     = gl.createBuffer();
+    gl.rectVertexPositionBuffer  = gl.createBuffer();
+    gl.rectVertexColorBuffer     = gl.createBuffer();
 
-    pathVertexPositionBuffer  = gl.createBuffer();
-    pathVertexColorBuffer     = gl.createBuffer();
+    gl.pathVertexPositionBuffer  = gl.createBuffer();
+    gl.pathVertexColorBuffer     = gl.createBuffer();
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.rectVertexPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
   };
 
@@ -1033,7 +1027,7 @@
       var transform = gl2d.transform;
       var shaderProgram = gl2d.initShaders(transform.c_stack+2,0);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
       transform.pushMatrix();
@@ -1054,7 +1048,7 @@
       var transform = gl2d.transform;
       var shaderProgram = gl2d.initShaders(transform.c_stack + 2,0);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
       transform.pushMatrix();
@@ -1136,7 +1130,7 @@
       var subPath = subPaths[index];
       var verts = subPath.verts;
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, pathVertexPositionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.pathVertexPositionBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
 
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
@@ -1165,7 +1159,7 @@
       var subPath = subPaths[index];
       var verts = subPath.verts;
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, pathVertexPositionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.pathVertexPositionBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
 
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
@@ -1282,7 +1276,7 @@
         gl.uniform4f(shaderProgram.uCropSource, a/image.width, b/image.height, c/image.width, d/image.height);
       }
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
       gl.bindTexture(gl.TEXTURE_2D, texture.obj);
