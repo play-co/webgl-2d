@@ -286,8 +286,6 @@
           // Append Canvas2D API features to the WebGL context
           gl2d.initCanvas2DAPI();
 
-          gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
-
           // Disables writing to dest-alpha
           // gl.colorMask(1,1,1,0)
 
@@ -465,6 +463,8 @@
     pMatrix[5] = -2 / this.canvas.height;
 
     gl.uniformMatrix4fv(this.shaderProgram.pMatrix, false, pMatrix);
+
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
     return this.shaderProgram;
   };
