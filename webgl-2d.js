@@ -363,8 +363,6 @@
   };
 
   WebGL2D.prototype.getVertexShaderSource = function getVertexShaderSource(stackDepth,sMask) {
-    var w = 2 / this.canvas.width, h = -2 / this.canvas.height;
-
     stackDepth = stackDepth || 1;
 
     var vsSource = [
@@ -380,7 +378,7 @@
 
       "varying vec4 vColor;",
 
-      "const mat4 pMatrix = mat4(" + w + ",0,0,0, 0," + h + ",0,0, 0,0,1.0,1.0, -1.0,1.0,0,0);",
+      "uniform mat4 pMatrix;",
 
       "mat3 crunchStack(void) {",
         "mat3 result = uTransforms[0];",
@@ -417,7 +415,6 @@
     if (storedShader) {
       gl.useProgram(storedShader);
       this.shaderProgram = storedShader;
-      return storedShader;
     } else {
       var fs = this.fs = gl.createShader(gl.FRAGMENT_SHADER);
       gl.shaderSource(this.fs, this.getFragmentShaderSource(sMask));
@@ -455,13 +452,21 @@
       shaderProgram.uSampler = gl.getUniformLocation(shaderProgram, 'uSampler');
       shaderProgram.uCropSource = gl.getUniformLocation(shaderProgram, 'uCropSource');
 
+      shaderProgram.pMatrix = gl.getUniformLocation(shaderProgram, 'pMatrix');
+
       shaderProgram.uTransforms = [];
       for (var i=0; i<transformStackDepth; ++i) {
         shaderProgram.uTransforms[i] = gl.getUniformLocation(shaderProgram, 'uTransforms[' + i + ']');
       } //for
       this.shaderPool[transformStackDepth][sMask] = shaderProgram;
-      return shaderProgram;
     } //if
+
+    pMatrix[0] = 2 / this.canvas.width;
+    pMatrix[5] = -2 / this.canvas.height;
+
+    gl.uniformMatrix4fv(this.shaderProgram.pMatrix, false, pMatrix);
+
+    return this.shaderProgram;
   };
 
   // 2D Vertices and Texture UV coords
@@ -471,6 +476,12 @@
       1,1, 1,1,
       1,0, 1,0
   ]);
+
+  var pMatrix = new Float32Array(16);
+  pMatrix[10] = 1;
+  pMatrix[11] = 1;
+  pMatrix[12] = -1;
+  pMatrix[13] = 1;
 
   WebGL2D.prototype.initBuffers = function initBuffers() {
     var gl = this.gl;
