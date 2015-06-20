@@ -38,7 +38,9 @@
  *
  *    WebGL2D.enable(cvs); // adds "webgl-2d" to cvs
  *
- *    cvs.getContext("webgl-2d");
+ *    var ctx = cvs.getContext("webgl-2d"); // Attempt to get webgl context
+ *
+ *    ctx.isWebGL // Detect whether WebGL-2D is active on this context.
  *
  */
 
@@ -279,6 +281,11 @@
           if (gl2d.gl) { return gl2d.gl; }
 
           var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
+
+          // If we failed to get a WebGL context, return a normal 2D context instead.
+          if ((typeof (gl) === "undefined") || (gl === null)) {
+            return gl2d.canvas.$getContext("2d");
+          }
 
           gl2d.initShaders();
           gl2d.initBuffers();
@@ -1300,6 +1307,14 @@
 
       transform.popMatrix();
     };
+
+    // This enables the user to detect whether they got a webgl-2d context or a 2d context.
+    Object.defineProperty(gl, "isWebGL", {
+      configurable: false,
+      enumerable: true,
+      writable: false,
+      value: true
+    });
   };
 
 }(Math));
