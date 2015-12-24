@@ -806,7 +806,11 @@
     Object.defineProperty(gl, "fillStyle", {
       get: function() { return colorVecToString(drawState.fillStyle); },
       set: function(value) {
-        drawState.fillStyle = colorStringToVec4(value) || drawState.fillStyle;
+        if (value instanceof GlPattern) {
+          drawState.fillStyle = value;
+        } else {
+          drawState.fillStyle = colorStringToVec4(value) || drawState.fillStyle;          
+        }
       }
     });
 
@@ -1035,20 +1039,35 @@
     };
 
     gl.fillRect = function fillRect(x, y, width, height) {
-      var transform = gl2d.transform;
-      var shaderProgram = gl2d.initShaders(transform.c_stack+2,0);
+      var shaderProgram, transform = gl2d.transform;
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
+      if (drawState.fillStyle instanceof GlPattern) {
+        shaderProgram = gl2d.initShaders(transform.c_stack, shaderMask.texture);
+      } else {
+        shaderProgram = gl2d.initShaders(transform.c_stack + 2, 0);
+      }
 
       transform.pushMatrix();
 
       transform.translate(x, y);
-      transform.scale(width, height);
 
-      sendTransformStack(shaderProgram);
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
-      gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
+      if (drawState.fillStyle instanceof GlPattern) {
+        transform.scale(drawState.fillStyle.width, drawState.fillStyle.height);
+        var texture = drawState.fillStyle.texture;
+        gl.bindTexture(gl.TEXTURE_2D, texture.obj);
+        gl.activeTexture(gl.TEXTURE0);
+
+        gl.uniform1i(shaderProgram.uSampler, 0);
+        sendTransformStack(shaderProgram);
+        // gl.uniform4f(shaderProgram.uCropSource, 0, 0, 0, 0);
+      } else {
+        transform.scale(width, height);
+        sendTransformStack(shaderProgram);
+        gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
+      }
 
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
@@ -1245,6 +1264,17 @@
       gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
+    var getTextureFromImage = function(image) {
+      var texture, cacheIndex = imageCache.indexOf(image);
+
+      if (cacheIndex !== -1) {
+        texture = textureCache[cacheIndex];
+      } else {
+        texture = new Texture(image);
+      }
+      return texture;
+    };
+
     gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
       var transform = gl2d.transform;
 
@@ -1274,14 +1304,7 @@
       }
 
       var shaderProgram = gl2d.initShaders(transform.c_stack, sMask);
-
-      var texture, cacheIndex = imageCache.indexOf(image);
-
-      if (cacheIndex !== -1) {
-        texture = textureCache[cacheIndex];
-      } else {
-        texture = new Texture(image);
-      }
+      var texture = getTextureFromImage(image);
 
       if (doCrop) {
         gl.uniform4f(shaderProgram.uCropSource, a/image.width, b/image.height, c/image.width, d/image.height);
@@ -1299,6 +1322,27 @@
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
       transform.popMatrix();
+    };
+
+
+    var GlPattern = function(image, direction) {
+      var texture = getTextureFromImage(image);
+      var REPEAT_DIRECTIONS = [
+        'repeat', 'repeat-x', 'repeat-y', 'no-repeat'
+      ];
+      direction = String(direction).toLowerCase();
+      if (!~REPEAT_DIRECTIONS.indexOf(direction)) {
+        direction = REPEAT_DIRECTIONS[0];
+      }
+
+      this.direction = direction;
+      this.texture = texture;
+      this.width = image.width;
+      this.height = image.height;
+    };
+
+    gl.createPattern = function createPattern(image, direction) {
+      return new GlPattern(image, direction);
     };
   };
 
