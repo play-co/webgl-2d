@@ -294,7 +294,7 @@
           gl2d.initCanvas2DAPI();
 
           // Disables writing to dest-alpha
-          gl.colorMask(1, 1, 1, 0);
+          // gl.colorMask(1, 1, 1, 0);
 
           // Depth options
           // gl.enable(gl.DEPTH_TEST);
@@ -1112,7 +1112,7 @@
         }
       }
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, pathVertexPositionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.pathVertexPositionBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
 
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
@@ -1124,8 +1124,6 @@
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
       gl.activeTexture(gl.TEXTURE0);
-
-      gl.colorMask(1, 1, 1, 1);
 
       gl.uniform1i(shaderProgram.uSampler, 0);
 
