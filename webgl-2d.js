@@ -293,11 +293,11 @@
           gl.clear(gl.COLOR_BUFFER_BIT); // | gl.DEPTH_BUFFER_BIT);
 
           // Disables writing to dest-alpha
-          gl.colorMask(1,1,1,0);
+          gl.colorMask(1, 1, 1, 0);
 
           // Depth options
-          //gl.enable(gl.DEPTH_TEST);
-          //gl.depthFunc(gl.LEQUAL);
+          // gl.enable(gl.DEPTH_TEST);
+          // gl.depthFunc(gl.LEQUAL);
 
           // Blending options
           gl.enable(gl.BLEND);
@@ -1039,36 +1039,61 @@
     };
 
     gl.fillRect = function fillRect(x, y, width, height) {
-      var shaderProgram, transform = gl2d.transform;
-
       if (drawState.fillStyle instanceof GlPattern) {
-        shaderProgram = gl2d.initShaders(transform.c_stack, shaderMask.texture);
+        fillRectPattern.apply(this, arguments);
       } else {
-        shaderProgram = gl2d.initShaders(transform.c_stack + 2, 0);
+        fillRectColor.apply(this, arguments);
       }
+    };
+
+    function fillRectColor(x, y, width, height) {      
+      var transform = gl2d.transform;
+      var shaderProgram = gl2d.initShaders(transform.c_stack + 2, 0);
 
       transform.pushMatrix();
-
       transform.translate(x, y);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
-      if (drawState.fillStyle instanceof GlPattern) {
-        transform.scale(drawState.fillStyle.width, drawState.fillStyle.height);
-        var texture = drawState.fillStyle.texture;
-        gl.bindTexture(gl.TEXTURE_2D, texture.obj);
-        gl.activeTexture(gl.TEXTURE0);
+      var r = drawState.fillStyle[0],
+          g = drawState.fillStyle[1],
+          b = drawState.fillStyle[2],
+          a = drawState.fillStyle[3];
+      transform.scale(width, height);
+      gl.uniform4f(shaderProgram.uColor, r, g, b, a);
 
-        gl.uniform1i(shaderProgram.uSampler, 0);
-        sendTransformStack(shaderProgram);
-        // gl.uniform4f(shaderProgram.uCropSource, 0, 0, 0, 0);
-      } else {
-        transform.scale(width, height);
-        sendTransformStack(shaderProgram);
-        gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
-      }
+      sendTransformStack(shaderProgram);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
+      transform.popMatrix();
+    };
+
+    function fillRectPattern(x, y, width, height) {
+      var transform = gl2d.transform;
+      var shaderProgram = gl2d.initShaders(transform.c_stack, shaderMask.texture);
+
+      transform.pushMatrix();
+      transform.translate(x, y);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
+
+      var textureWidth = drawState.fillStyle.width;
+      var textureHeight = drawState.fillStyle.height;
+      var texture = drawState.fillStyle.texture;
+
+      transform.scale(textureWidth, textureHeight);
+      gl.bindTexture(gl.TEXTURE_2D, texture.obj);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+      gl.activeTexture(gl.TEXTURE0);
+
+      gl.colorMask(1, 1, 1, 1);
+
+      gl.uniform1i(shaderProgram.uSampler, 0);
+
+      sendTransformStack(shaderProgram);
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
       transform.popMatrix();
@@ -1315,7 +1340,7 @@
 
       gl.bindTexture(gl.TEXTURE_2D, texture.obj);
       gl.activeTexture(gl.TEXTURE0);
-
+      gl.colorMask(1, 1, 1, 1);
       gl.uniform1i(shaderProgram.uSampler, 0);
 
       sendTransformStack(shaderProgram);

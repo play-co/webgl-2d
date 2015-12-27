@@ -28,15 +28,14 @@
         img.onload = function() {
           draw(ctxGL);
           draw(ctx2D);
-        }
+        };
       }
 
       function draw(ctx) {
-        // ctx.clearRect(0, 0, width, height);
+        requestAnimationFrame(draw.bind(this, ctx));
         var pattern = ctx.createPattern(img, 'repeat');
         ctx.fillStyle = pattern;
         ctx.fillRect(0, 0, 50, 50);
-        // ctx.drawImage(img, 0, 0, 50, 50, 10, 10, 50, 50);
       }
     </script>
 
