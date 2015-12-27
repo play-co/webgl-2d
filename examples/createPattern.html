@@ -33,9 +33,10 @@
 
       function draw(ctx) {
         requestAnimationFrame(draw.bind(this, ctx));
+        ctx.clearRect(0, 0, width, height);
         var pattern = ctx.createPattern(img, 'repeat');
         ctx.fillStyle = pattern;
-        ctx.fillRect(0, 0, 50, 50);
+        ctx.fillRect(0, 10, 150, 110);
       }
     </script>
 
