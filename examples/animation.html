@@ -1,0 +1,59 @@
+<h3>Canvas2D</h3>
+<canvas id="canvas-default"></canvas>
+<h3>Webgl-2d</h3>
+<canvas id="canvas-webgl"></canvas>
+<script src="../webgl-2d.js"></script>
+<script>
+var width = 600,
+    height = 200;
+ 
+var canvasDefault = document.getElementById("canvas-default");
+canvasDefault.width = width;
+canvasDefault.height = height;
+ 
+var canvasWebgl = document.getElementById("canvas-webgl");
+canvasWebgl.width = width;
+canvasWebgl.height = height;
+ 
+WebGL2D.enable(canvasWebgl)
+var ctx = canvasDefault.getContext("2d");
+var webgl = canvasWebgl.getContext("webgl-2d");
+ 
+var t = 0; 
+function render() {
+  t++;
+  var j = 10;
+  while (--j > 0) { 
+    var i = 20;
+    while (--i > 0) {
+      var color = "hsl(" + (360/i+t) + "," + (100/j) + "%," + (60-j)+ "%)";
+      ctx.fillStyle = color;
+      webgl.fillStyle = color;
+      ctx.fillRect(30*(i-1),20*(j-1),20,15);
+      webgl.fillRect(30*(i-1),20*(j-1),20,15);
+    }
+  }
+}
+
+// shim layer with setTimeout fallback
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          window.oRequestAnimationFrame      ||
+          window.msRequestAnimationFrame     ||
+          function( callback ){
+            window.setTimeout(callback, 1000 / 60);
+          };
+})();
+
+
+// usage: 
+// instead of setInterval(render, 16) ....
+
+(function animloop(){
+  requestAnimFrame(animloop);
+  render();
+})();
+ 
+</script>
