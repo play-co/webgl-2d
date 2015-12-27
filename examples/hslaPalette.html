@@ -1,0 +1,43 @@
+<h3>Canvas2D</h3>
+<canvas id="canvas-default"></canvas>
+<h3>Webgl-2d</h3>
+<canvas id="canvas-webgl"></canvas>
+<script src="../webgl-2d.js"></script>
+<script>
+var width = 600,
+    height = 200;
+ 
+var canvasDefault = document.getElementById("canvas-default");
+canvasDefault.width = width;
+canvasDefault.height = height;
+ 
+var canvasWebgl = document.getElementById("canvas-webgl");
+canvasWebgl.width = width;
+canvasWebgl.height = height;
+ 
+WebGL2D.enable(canvasWebgl)
+var ctx = canvasDefault.getContext("2d");
+var webgl = canvasWebgl.getContext("webgl-2d");
+ 
+ 
+var j = 10;
+while (--j > 0) { 
+  var i = 20;
+  while (--i > 0) {
+    var color = "hsla(" + (360/i) + "," + (100/j) + "%," + (60-j)+ "%,0.3)";
+    ctx.lineWidth = 10;
+    webgl.lineWidth = 10;
+    ctx.strokeStyle = color;
+    webgl.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(30*(i-1),20*(j-1));
+    ctx.lineTo(30*(i-1)+20,20*(j-1)+15);
+    ctx.stroke();
+    webgl.beginPath();
+    webgl.moveTo(30*(i-1),20*(j-1))
+    webgl.lineTo(30*(i-1)+20,20*(j-1)+15)
+    webgl.stroke();
+  }
+}
+ 
+</script>
