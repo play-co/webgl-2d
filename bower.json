@@ -1,0 +1,24 @@
+{
+  "name": "webgl-2d",
+  "main": "webgl-2d.js",
+  "homepage": "https://github.com/lekzd/webgl-2d",
+  "authors": [
+    "gameclosure"
+  ],
+  "description": "Use WebGl features as HTML5 Canvas api",
+  "moduleType": [],
+  "keywords": [
+    "WebGl"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "benchmarks",
+    "examples",
+    "support",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

@@ -38,7 +38,9 @@
  *
  *    WebGL2D.enable(cvs); // adds "webgl-2d" to cvs
  *
- *    cvs.getContext("webgl-2d");
+ *    var ctx = cvs.getContext("webgl-2d"); // Attempt to get webgl context
+ *
+ *    ctx.isWebGL // Detect whether WebGL-2D is active on this context.
  *
  */
 
@@ -280,28 +282,28 @@
 
           var gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
 
+          // If we failed to get a WebGL context, return a normal 2D context instead.
+          if ((typeof (gl) === "undefined") || (gl === null)) {
+            return gl2d.canvas.$getContext("2d");
+          }
+
           gl2d.initShaders();
           gl2d.initBuffers();
 
           // Append Canvas2D API features to the WebGL context
           gl2d.initCanvas2DAPI();
 
-          gl.viewport(0, 0, gl2d.canvas.width, gl2d.canvas.height);
-
-          // Default white background
-          gl.clearColor(1, 1, 1, 1);
-          gl.clear(gl.COLOR_BUFFER_BIT); // | gl.DEPTH_BUFFER_BIT);
-
           // Disables writing to dest-alpha
-          gl.colorMask(1,1,1,0);
+          // gl.colorMask(1, 1, 1, 0);
 
           // Depth options
-          //gl.enable(gl.DEPTH_TEST);
-          //gl.depthFunc(gl.LEQUAL);
+          // gl.enable(gl.DEPTH_TEST);
+          // gl.depthFunc(gl.LEQUAL);
 
           // Blending options
+          // See http://stackoverflow.com/questions/11521035/blending-with-html-background-in-webgl
           gl.enable(gl.BLEND);
-          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+          gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
           gl2d.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
@@ -336,8 +338,8 @@
         "precision highp float;",
       "#endif",
 
-      "#define hasTexture " + ((sMask&shaderMask.texture) ? "1" : "0"),
-      "#define hasCrop " + ((sMask&shaderMask.crop) ? "1" : "0"),
+      "#define hasTexture " + ((sMask == shaderMask.texture) ? "1" : "0"),
+      "#define hasCrop " + ((sMask == shaderMask.crop) ? "1" : "0"),
 
       "varying vec4 vColor;",
 
@@ -365,13 +367,11 @@
     return fsSource;
   };
 
-  WebGL2D.prototype.getVertexShaderSource = function getVertexShaderSource(stackDepth,sMask) {
-    var w = 2 / this.canvas.width, h = -2 / this.canvas.height;
-
+  WebGL2D.prototype.getVertexShaderSource = function getVertexShaderSource(stackDepth, sMask) {
     stackDepth = stackDepth || 1;
 
     var vsSource = [
-      "#define hasTexture " + ((sMask&shaderMask.texture) ? "1" : "0"),
+      "#define hasTexture " + ((sMask == shaderMask.texture) ? "1" : "0"),
       "attribute vec4 aVertexPosition;",
 
       "#if hasTexture",
@@ -383,7 +383,7 @@
 
       "varying vec4 vColor;",
 
-      "const mat4 pMatrix = mat4(" + w + ",0,0,0, 0," + h + ",0,0, 0,0,1.0,1.0, -1.0,1.0,0,0);",
+      "uniform mat4 pMatrix;",
 
       "mat3 crunchStack(void) {",
         "mat3 result = uTransforms[0];",
@@ -407,7 +407,7 @@
 
 
   // Initialize fragment and vertex shaders
-  WebGL2D.prototype.initShaders = function initShaders(transformStackDepth,sMask) {
+  WebGL2D.prototype.initShaders = function initShaders(transformStackDepth, sMask) {
     var gl = this.gl;
 
     transformStackDepth = transformStackDepth || 1;
@@ -420,24 +420,22 @@
     if (storedShader) {
       gl.useProgram(storedShader);
       this.shaderProgram = storedShader;
-      return storedShader;
     } else {
       var fs = this.fs = gl.createShader(gl.FRAGMENT_SHADER);
       gl.shaderSource(this.fs, this.getFragmentShaderSource(sMask));
       gl.compileShader(this.fs);
 
       if (!gl.getShaderParameter(this.fs, gl.COMPILE_STATUS)) {
-        throw "fragment shader error: "+gl.getShaderInfoLog(this.fs);
+        throw "fragment shader error: " + gl.getShaderInfoLog(this.fs);
       }
 
       var vs = this.vs = gl.createShader(gl.VERTEX_SHADER);
-      gl.shaderSource(this.vs, this.getVertexShaderSource(transformStackDepth,sMask));
+      gl.shaderSource(this.vs, this.getVertexShaderSource(transformStackDepth, sMask));
       gl.compileShader(this.vs);
 
       if (!gl.getShaderParameter(this.vs, gl.COMPILE_STATUS)) {
-        throw "vertex shader error: "+gl.getShaderInfoLog(this.vs);
+        throw "vertex shader error: " + gl.getShaderInfoLog(this.vs);
       }
-
 
       var shaderProgram = this.shaderProgram = gl.createProgram();
       shaderProgram.stackDepth = transformStackDepth;
@@ -458,20 +456,24 @@
       shaderProgram.uSampler = gl.getUniformLocation(shaderProgram, 'uSampler');
       shaderProgram.uCropSource = gl.getUniformLocation(shaderProgram, 'uCropSource');
 
+      shaderProgram.pMatrix = gl.getUniformLocation(shaderProgram, 'pMatrix');
+
       shaderProgram.uTransforms = [];
       for (var i=0; i<transformStackDepth; ++i) {
         shaderProgram.uTransforms[i] = gl.getUniformLocation(shaderProgram, 'uTransforms[' + i + ']');
       } //for
       this.shaderPool[transformStackDepth][sMask] = shaderProgram;
-      return shaderProgram;
     } //if
+
+    pMatrix[0] = 2 / this.canvas.width;
+    pMatrix[5] = -2 / this.canvas.height;
+
+    gl.uniformMatrix4fv(this.shaderProgram.pMatrix, false, pMatrix);
+
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+
+    return this.shaderProgram;
   };
-
-  var rectVertexPositionBuffer;
-  var rectVertexColorBuffer;
-
-  var pathVertexPositionBuffer;
-  var pathVertexColorBuffer;
 
   // 2D Vertices and Texture UV coords
   var rectVerts = new Float32Array([
@@ -481,16 +483,22 @@
       1,0, 1,0
   ]);
 
+  var pMatrix = new Float32Array(16);
+  pMatrix[10] = 1;
+  pMatrix[11] = 1;
+  pMatrix[12] = -1;
+  pMatrix[13] = 1;
+
   WebGL2D.prototype.initBuffers = function initBuffers() {
     var gl = this.gl;
 
-    rectVertexPositionBuffer  = gl.createBuffer();
-    rectVertexColorBuffer     = gl.createBuffer();
+    gl.rectVertexPositionBuffer  = gl.createBuffer();
+    gl.rectVertexColorBuffer     = gl.createBuffer();
 
-    pathVertexPositionBuffer  = gl.createBuffer();
-    pathVertexColorBuffer     = gl.createBuffer();
+    gl.pathVertexPositionBuffer  = gl.createBuffer();
+    gl.pathVertexColorBuffer     = gl.createBuffer();
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.rectVertexPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rectVerts, gl.STATIC_DRAW);
   };
 
@@ -518,8 +526,9 @@
     var reHex6Color = /^#([0-9A-Fa-f]{6})$/;
     var reHex3Color = /^#([0-9A-Fa-f])([0-9A-Fa-f])([0-9A-Fa-f])$/;
 
+    // http://axonflux.com/handy-rgb-to-hsl-and-rgb-to-hsv-color-model-c
     function HSLAToRGBA(h, s, l, a) {
-      var r, g, b, m1, m2;
+      var r, g, b, p, q;
 
       // Clamp and Normalize values
       h = (((h % 360) + 360) % 360) / 360;
@@ -528,28 +537,25 @@
       l = l > 100 ? 1 : l / 100;
       l = l <   0 ? 0 : l;
 
-      m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
-      m1 = l * 2 - m2;
+      if(s == 0) {
+          r = g = b = l; // achromatic
+      } else {
+          function hue2rgb(p, q, t){
+              if(t < 0) t += 1;
+              if(t > 1) t -= 1;
+              if(t < 1/6) return p + (q - p) * 6 * t;
+              if(t < 1/2) return q;
+              if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+              return p;
+          }
 
-      function getHue(value) {
-        var hue;
+          q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+          p = 2 * l - q;
 
-        if (value * 6 < 1) {
-          hue = m1 + (m2 - m1) * value * 6;
-        } else if (value * 2 < 1) {
-          hue = m2;
-        } else if (value * 3 < 2) {
-          hue = m1 + (m2 - m1) * (2/3 - value) * 6;
-        } else {
-          hue = m1;
-        }
-
-        return hue;
+          r = hue2rgb(p, q, h + 1/3);
+          g = hue2rgb(p, q, h);
+          b = hue2rgb(p, q, h - 1/3);
       }
-
-      r = getHue(h + 1/3);
-      g = getHue(h);
-      b = getHue(h - 1/3);
 
       return [r, g, b, a];
     }
@@ -806,7 +812,11 @@
     Object.defineProperty(gl, "fillStyle", {
       get: function() { return colorVecToString(drawState.fillStyle); },
       set: function(value) {
-        drawState.fillStyle = colorStringToVec4(value) || drawState.fillStyle;
+        if (value instanceof GlPattern) {
+          drawState.fillStyle = value;
+        } else {
+          drawState.fillStyle = colorStringToVec4(value) || drawState.fillStyle;          
+        }
       }
     });
 
@@ -1035,31 +1045,104 @@
     };
 
     gl.fillRect = function fillRect(x, y, width, height) {
-      var transform = gl2d.transform;
-      var shaderProgram = gl2d.initShaders(transform.c_stack+2,0);
+      if (drawState.fillStyle instanceof GlPattern) {
+        fillRectPattern.apply(this, arguments);
+      } else {
+        fillRectColor.apply(this, arguments);
+      }
+    };
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
-      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
+    function fillRectColor(x, y, width, height) {      
+      var transform = gl2d.transform;
+      var shaderProgram = gl2d.initShaders(transform.c_stack + 2, 0);
 
       transform.pushMatrix();
-
       transform.translate(x, y);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.rectVertexPositionBuffer);
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
+
+      var r = drawState.fillStyle[0],
+          g = drawState.fillStyle[1],
+          b = drawState.fillStyle[2],
+          a = drawState.fillStyle[3];
       transform.scale(width, height);
+      gl.uniform4f(shaderProgram.uColor, r, g, b, a);
 
       sendTransformStack(shaderProgram);
-
-      gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
-
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
 
       transform.popMatrix();
     };
 
+    function getRectVertices(x, y) {
+      x2 = x + 1;
+      y2 = y + 1;
+      return [
+        x,y, x,y,
+        x,y2, x,y2,
+        x2,y2, x2,y2,
+        x2,y, x2,y
+      ];
+    };
+
+    function fillRectPattern(x, y, width, height) {
+      var transform = gl2d.transform;
+      var shaderProgram = gl2d.initShaders(transform.c_stack, shaderMask.texture);
+      var textureWidth = drawState.fillStyle.width;
+      var textureHeight = drawState.fillStyle.height;
+
+      transform.pushMatrix();
+
+      transform.translate(0, 0);
+
+      var horisontalRepeats = 1;
+      if (~['repeat', 'repeat-x'].indexOf(drawState.fillStyle.direction)) {
+        horisontalRepeats = Math.ceil((x + width) / textureWidth);
+      }
+      var verticalRepeats = 1;
+      if (~['repeat', 'repeat-y'].indexOf(drawState.fillStyle.direction)) {
+        verticalRepeats = Math.ceil((y + height) / textureHeight);
+      }
+
+      var verts = [];
+      for (vX = 0; vX < horisontalRepeats; vX++) {
+        for (vY = 0; vY < verticalRepeats; vY++) {
+          verts = verts.concat(getRectVertices(vX, vY));
+        }
+      }
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.pathVertexPositionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
+
+      var texture = drawState.fillStyle.texture;
+
+      transform.scale(textureWidth, textureHeight);
+      gl.bindTexture(gl.TEXTURE_2D, texture.obj);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+      gl.activeTexture(gl.TEXTURE0);
+
+      gl.uniform1i(shaderProgram.uSampler, 0);
+
+      gl.enable(gl.SCISSOR_TEST);
+      var verticalOffset = (height - (verticalRepeats * textureHeight)) / 2;
+      gl.scissor(x, gl2d.canvas.height - height - y, width, height);
+
+      sendTransformStack(shaderProgram);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, verts.length / 4);
+
+      gl.disable(gl.SCISSOR_TEST);
+      transform.popMatrix();
+    };
+
     gl.strokeRect = function strokeRect(x, y, width, height) {
       var transform = gl2d.transform;
-      var shaderProgram = gl2d.initShaders(transform.c_stack + 2,0);
+      var shaderProgram = gl2d.initShaders(transform.c_stack + 2, 0);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
       transform.pushMatrix();
@@ -1141,7 +1224,7 @@
       var subPath = subPaths[index];
       var verts = subPath.verts;
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, pathVertexPositionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.pathVertexPositionBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
 
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
@@ -1150,9 +1233,12 @@
 
       sendTransformStack(shaderProgram);
 
-      gl.uniform4f(shaderProgram.uColor, drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]);
-
-      gl.drawArrays(gl.TRIANGLE_FAN, 0, verts.length/4);
+      var r = drawState.fillStyle[0],
+          g = drawState.fillStyle[1],
+          b = drawState.fillStyle[2],
+          a = drawState.fillStyle[3];
+      gl.uniform4f(shaderProgram.uColor, r, g, b, a);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, verts.length / 4);
 
       transform.popMatrix();
     }
@@ -1170,7 +1256,7 @@
       var subPath = subPaths[index];
       var verts = subPath.verts;
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, pathVertexPositionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.pathVertexPositionBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
 
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
@@ -1245,6 +1331,17 @@
       gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
+    var getTextureFromImage = function(image) {
+      var texture, cacheIndex = imageCache.indexOf(image);
+
+      if (cacheIndex !== -1) {
+        texture = textureCache[cacheIndex];
+      } else {
+        texture = new Texture(image);
+      }
+      return texture;
+    };
+
     gl.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
       var transform = gl2d.transform;
 
@@ -1274,25 +1371,18 @@
       }
 
       var shaderProgram = gl2d.initShaders(transform.c_stack, sMask);
-
-      var texture, cacheIndex = imageCache.indexOf(image);
-
-      if (cacheIndex !== -1) {
-        texture = textureCache[cacheIndex];
-      } else {
-        texture = new Texture(image);
-      }
+      var texture = getTextureFromImage(image);
 
       if (doCrop) {
         gl.uniform4f(shaderProgram.uCropSource, a/image.width, b/image.height, c/image.width, d/image.height);
       }
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, rectVertexPositionBuffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.rectVertexPositionBuffer);
       gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 4, gl.FLOAT, false, 0, 0);
 
       gl.bindTexture(gl.TEXTURE_2D, texture.obj);
       gl.activeTexture(gl.TEXTURE0);
-
+      gl.colorMask(1, 1, 1, 1);
       gl.uniform1i(shaderProgram.uSampler, 0);
 
       sendTransformStack(shaderProgram);
@@ -1300,6 +1390,34 @@
 
       transform.popMatrix();
     };
+
+    var GlPattern = function(image, direction) {
+      var texture = getTextureFromImage(image);
+      var REPEAT_DIRECTIONS = [
+        'repeat', 'repeat-x', 'repeat-y', 'no-repeat'
+      ];
+      direction = String(direction).toLowerCase();
+      if (!~REPEAT_DIRECTIONS.indexOf(direction)) {
+        direction = REPEAT_DIRECTIONS[0];
+      }
+
+      this.direction = direction;
+      this.texture = texture;
+      this.width = image.width;
+      this.height = image.height;
+    };
+
+    gl.createPattern = function createPattern(image, direction) {
+      return new GlPattern(image, direction);
+    };
+
+    // This enables the user to detect whether they got a webgl-2d context or a 2d context.
+    Object.defineProperty(gl, "isWebGL", {
+      configurable: false,
+      enumerable: true,
+      writable: false,
+      value: true
+    });
   };
 
 }(Math));
