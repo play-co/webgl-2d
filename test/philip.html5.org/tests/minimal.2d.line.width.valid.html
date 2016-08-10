@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html class="minimal">
+<title>Canvas test: 2d.line.width.valid</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<link rel="prev" href="minimal.2d.line.width.scaledefault.html" title="2d.line.width.scaledefault">
+<link rel="next" href="minimal.2d.line.width.invalid.html" title="2d.line.width.invalid">
+<body>
+<p id="passtext">Pass</p>
+<p id="failtext">Fail</p>
+<!-- TODO: handle "script did not run" case -->
+<p class="output">These images should be identical:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+ctx.lineWidth = 1.5;
+_assertSame(ctx.lineWidth, 1.5, "ctx.lineWidth", "1.5");
+
+ctx.lineWidth = "1e1";
+_assertSame(ctx.lineWidth, 10, "ctx.lineWidth", "10");
+
+ctx.lineWidth = 1/1024;
+_assertSame(ctx.lineWidth, 1/1024, "ctx.lineWidth", "1/1024");
+
+ctx.lineWidth = 1000;
+_assertSame(ctx.lineWidth, 1000, "ctx.lineWidth", "1000");
+
+
+});
+</script>
+

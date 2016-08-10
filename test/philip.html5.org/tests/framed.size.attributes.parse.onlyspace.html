@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<title>Canvas test: size.attributes.parse.onlyspace</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="size.attributes.parse.onlyspace.html" target="_parent">size.&#8203;attributes.&#8203;parse.&#8203;onlyspace</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="  " height="  "><p class="fallback">FAIL (fallback content)</p></canvas>
+<p class="output expectedtext">Expected output:<p><img src="size.attributes.parse.onlyspace.png" class="output expected" id="expected" alt="">
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+_assertSame(canvas.width, 300, "canvas.width", "300");
+_assertSame(canvas.height, 150, "canvas.height", "150");
+
+
+});
+</script>
+

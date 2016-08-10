@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+      <!-- Copyright (c) 2011  All Rights Reserved - Kevin Roast http://www.kevs3d.co.uk/ -->
+      <title>Asteroids HTML5 Canvas 2D Rendering and JavaScript Benchmark by Kevin Roast</title>
+      <script type="text/javascript" src="../../webgl-2d.js"></script>
+      <script type="text/javascript" src="scripts/jquery-1.4.4.min.js"></script>
+      <script type="text/javascript" src="scripts/mathlib-min.js"></script>
+      <script type="text/javascript" src="scripts/gamelib-min.js"></script>
+      <script type="text/javascript" src="scripts/asteroids-min.js"></script>
+      <style type="text/css">
+         body { font-family: Arial, Helvetica; color: lightblue }
+         .title { padding-top: 6px; text-align: center; font-weight: bold; color: red }
+         P { padding-left: 2em; padding-top: 0; padding-bottom: 0; line-height: 1.2em }
+         P.left { padding-left: 1em; line-height: 1.4em }
+         .bold { font-weight: bold }
+         .small { text-align:center; font-size: 0.75em }
+         a, a:visited, a:active, a:hover { color: #ffffff }
+         .results { color: white }
+         .results-wrapper {display:none; border: 2px solid grey; background-color: #333333; margin-left: 1em}
+         .button-overlay { float: right }
+      </style>
+      <meta name="description" content="Asteroids HTML5 Canvas 2D Rendering and JavaScript Benchmark by Kevin Roast" />
+   </head>
+   
+   <body onload="onloadHandler();" style="background-color: #000000">
+      
+      <div class="title">Asteroids HTML5 Canvas 2D Rendering and JavaScript Benchmark</div>
+      <div style="padding: 12px; min-width: 900px">
+         <table align="center">
+            <tr>
+               <td>
+                  <canvas id="canvas" width="640" height="640" style="border: 2px solid #aaaaaa;"></canvas>
+               </td>
+               <td>
+                  <div>
+                     <p class="left bold">Benchmark Info:</p>
+                     <p>Tests the 2D canvas rendering performance for commonly used operations in HTML5 games: drawImage, drawImage scaling, alpha, composition, shadows and text functions.
+                  </div>
+                  <div id="results-wrapper" class="results-wrapper">
+                     <p class="left bold">Benchmark Results:</p>
+                     <div class="results" id="results"></div>
+                  </div>
+                  <div style="padding-top:12px">
+                     <p class="left">Run the test with <a href="http://www.google.co.uk/chrome" target="new">Chrome</a> or <a href="http://www.mozilla.com/firefox" target="new">FireFox</a> or <a href="http://www.apple.com/safari/download" target="new">Safari</a> or <a href="http://www.opera.com/download" target="new">Opera</a>.</p>
+                  </div>
+                  <div>
+                     <p class="left"><a href="../index.html">See more HTML5 Canvas demos!</a></p>
+                     <p class="left"><a href="../asteroids">Play the Asteroids game!</a></p>
+                  </div>
+               </td>
+            </tr>
+         </table>
+      </div>
+      <div class="small">
+      <a href="http://twitter.com/kevinroast" target="new">Follow me on Twitter</a>- Last updated: 9/9/2010</div>
+   </body>
+</html>

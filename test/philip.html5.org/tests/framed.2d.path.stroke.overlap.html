@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<title>Canvas test: 2d.path.stroke.overlap</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="2d.path.stroke.overlap.html" target="_parent">2d.&#8203;path.&#8203;stroke.&#8203;overlap</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+<p class="output expectedtext">Expected output:<p><img src="2d.path.stroke.overlap.png" class="output expected" id="expected" alt="">
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+ctx.fillStyle = '#000';
+ctx.fillRect(0, 0, 100, 50);
+
+ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+ctx.lineWidth = 50;
+ctx.moveTo(0, 20);
+ctx.lineTo(100, 20);
+ctx.moveTo(0, 30);
+ctx.lineTo(100, 30);
+ctx.stroke();
+
+_assertPixelApprox(canvas, 50,25, 0,127,0,255, "50,25", "0,127,0,255", 1);
+
+
+});
+</script>
+

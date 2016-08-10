@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<title>Canvas test: 2d.imageData.get.order.rgb</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="2d.imageData.get.order.rgb.html" target="_parent">2d.&#8203;imageData.&#8203;get.&#8203;order.&#8203;rgb</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+ctx.fillStyle = '#48c';
+ctx.fillRect(0, 0, 100, 50);
+var imgdata = ctx.getImageData(0, 0, 10, 10);
+_assertSame(imgdata.data[0], 0x44, "imgdata.data[\""+(0)+"\"]", "0x44");
+_assertSame(imgdata.data[1], 0x88, "imgdata.data[\""+(1)+"\"]", "0x88");
+_assertSame(imgdata.data[2], 0xCC, "imgdata.data[\""+(2)+"\"]", "0xCC");
+_assertSame(imgdata.data[3], 255, "imgdata.data[\""+(3)+"\"]", "255");
+_assertSame(imgdata.data[4], 0x44, "imgdata.data[\""+(4)+"\"]", "0x44");
+_assertSame(imgdata.data[5], 0x88, "imgdata.data[\""+(5)+"\"]", "0x88");
+_assertSame(imgdata.data[6], 0xCC, "imgdata.data[\""+(6)+"\"]", "0xCC");
+_assertSame(imgdata.data[7], 255, "imgdata.data[\""+(7)+"\"]", "255");
+
+
+});
+</script>
+

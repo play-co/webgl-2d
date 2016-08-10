@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebGL-2D Example</title>
+  
+    <script src="../webgl-2d.js" type="text/javascript"></script>
+  
+    <script type="text/javascript">
+      document.addEventListener("DOMContentLoaded", init, false);
+
+      var cvs2D, cvsGL, ctx2D, ctxGL, width, height;
+      var frameCount = 0;
+      var img = new Image();
+      img.src = "../examples/images/spin0000.png";
+
+      function init() {
+        cvs = document.getElementById("canvas");
+
+        width = cvs.width, height = cvs.height;
+
+        WebGL2D.enable(cvs); // adds new context "webgl-2d" to cvs
+
+        // Easily switch between regular canvas 2d context and webgl-2d
+        ctx = cvs.getContext("webgl-2d");
+
+        ctx.fillStyle = "rgb(255, 255, 255)";
+
+        img.onload = function() {
+          // Enable animation
+          setInterval(function() { frameCount++; draw(ctx); }, 1000/60);
+        }
+      }
+
+      function draw(ctx) {
+        ctx.fillRect(0, 0, width, height);
+        for (var i = 0; i < 500; i++) {
+          ctx.drawImage(img, Math.random() * width, Math.random() * height);
+          ctx.drawImage(img, Math.random() * width, Math.random() * height, 10, 10);
+        }
+      }
+    </script>
+
+    <style type="text/css">
+      body, * {
+        font-family: sans-serif;
+      }
+    </style>
+  
+  </head>
+  
+  <body>
+    <h1>Benchmark: WebGL-2D drawImage</h1>
+    <div style="float: left; margin-right: 10px;">
+      <h2>WebGL-2D</h2> 
+      <canvas id="canvas" width="350" height="350" style="border: 1px solid black;"></canvas>
+    </div>
+  </body>
+</html>

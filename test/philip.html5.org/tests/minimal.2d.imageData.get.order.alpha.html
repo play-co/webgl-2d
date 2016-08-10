@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html class="minimal">
+<title>Canvas test: 2d.imageData.get.order.alpha</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<link rel="prev" href="minimal.2d.imageData.get.order.rgb.html" title="2d.imageData.get.order.rgb">
+<link rel="next" href="minimal.2d.imageData.get.unaffected.html" title="2d.imageData.get.unaffected">
+<body>
+<p id="passtext">Pass</p>
+<p id="failtext">Fail</p>
+<!-- TODO: handle "script did not run" case -->
+<p class="output">These images should be identical:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+ctx.fillRect(0, 0, 100, 50);
+var imgdata = ctx.getImageData(0, 0, 10, 10);
+_assert(imgdata.data[3] < 200, "imgdata.data[\""+(3)+"\"] < 200");
+_assert(imgdata.data[3] > 100, "imgdata.data[\""+(3)+"\"] > 100");
+
+
+});
+</script>
+

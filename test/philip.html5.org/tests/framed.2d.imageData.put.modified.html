@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<title>Canvas test: 2d.imageData.put.modified</title>
+<script src="../tests.js"></script>
+<link rel="stylesheet" href="../tests.css">
+<body class="framed show_output">
+<h1>
+<a href="2d.imageData.put.modified.html" target="_parent">2d.&#8203;imageData.&#8203;put.&#8203;modified</a>
+</h1>
+<p><a href="#" id="show_output" onclick="document.body.className += ' show_output'; return false">[show output]</a>
+<p class="output">Actual output:</p>
+<canvas id="c" class="output" width="100" height="50"><p class="fallback">FAIL (fallback content)</p></canvas>
+<p class="output expectedtext">Expected output:<p><img src="green-100x50.png" class="output expected" id="expected" alt="">
+<ul id="d"></ul>
+<script>
+_addTest(function(canvas, ctx) {
+
+ctx.fillStyle = '#0f0';
+ctx.fillRect(0, 0, 100, 50)
+ctx.fillStyle = '#f00';
+ctx.fillRect(45, 20, 10, 10)
+var imgdata = ctx.getImageData(45, 20, 10, 10);
+for (var i = 0, len = imgdata.width*imgdata.height*4; i < len; i += 4)
+{
+    imgdata.data[i] = 0;
+    imgdata.data[i+1] = 255;
+}
+ctx.putImageData(imgdata, 45, 20);
+_assertPixelApprox(canvas, 50,25, 0,255,0,255, "50,25", "0,255,0,255", 2);
+
+
+});
+</script>
+
